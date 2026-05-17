@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fahrzeugankauf – Autohaus Stieber</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary:       #003366;
+    --primary-dark:  #001f40;
+    --primary-light: #004a8f;
+    --accent:        #c8982a;
+    --accent-hover:  #a87820;
+    --accent-light:  #f5e9cc;
+    --bg:            #f4f6f8;
+    --white:         #ffffff;
+    --text:          #1a1a1a;
+    --text-light:    #5a6474;
+    --border:        #d8dde5;
+    --success:       #1e6e42;
+    --error:         #c0392b;
+    --shadow-sm:     0 1px 4px rgba(0,0,0,0.07);
+    --shadow:        0 3px 14px rgba(0,0,0,0.09);
+    --shadow-lg:     0 8px 32px rgba(0,0,0,0.13);
+    --radius:        8px;
+    --radius-lg:     12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; font-size:14px; line-height:1.5; }
+
+  /* LOGIN */
+  #login-screen { display:flex; align-items:center; justify-content:center; min-height:100vh; background:linear-gradient(145deg,var(--primary) 0%,var(--primary-dark) 60%,#000f20 100%); position:relative; overflow:hidden; }
+  #login-screen::before { content:''; position:absolute; width:600px; height:600px; border-radius:50%; background:rgba(200,152,42,0.06); top:-150px; right:-100px; }
+  #login-screen::after  { content:''; position:absolute; width:400px; height:400px; border-radius:50%; background:rgba(200,152,42,0.04); bottom:-100px; left:-80px; }
+  .login-card { background:white; border-radius:18px; padding:52px 44px; width:100%; max-width:420px; text-align:center; box-shadow:0 24px 80px rgba(0,0,0,0.4); position:relative; z-index:1; }
+  .login-logo-mark { display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; background:var(--primary); border-radius:16px; margin-bottom:20px; box-shadow:0 4px 16px rgba(0,51,102,0.3); }
+  .login-logo-mark svg { width:36px; height:36px; }
+  .login-brand { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--primary); letter-spacing:-0.5px; }
+  .login-sub { font-size:12px; color:var(--text-light); margin-bottom:36px; letter-spacing:1.5px; text-transform:uppercase; margin-top:4px; }
+  .login-card h2 { font-size:19px; font-weight:600; margin-bottom:24px; color:var(--text); }
+
+  /* HEADER */
+  header { background:var(--primary); color:white; padding:0 28px; display:flex; align-items:center; justify-content:space-between; height:62px; box-shadow:0 2px 12px rgba(0,0,0,0.25); position:sticky; top:0; z-index:100; }
+  .header-left { display:flex; align-items:center; gap:14px; }
+  .header-logo-mark { display:flex; align-items:center; justify-content:center; width:38px; height:38px; background:rgba(255,255,255,0.1); border-radius:8px; border:1px solid rgba(255,255,255,0.15); }
+  .header-logo-mark svg { width:22px; height:22px; }
+  .header-brand { font-family:'Playfair Display',serif; font-size:18px; font-weight:700; color:var(--accent); letter-spacing:-0.3px; }
+  .header-divider { width:1px; height:24px; background:rgba(255,255,255,0.2); }
+  .header-title { font-size:13px; color:rgba(255,255,255,0.65); font-weight:400; letter-spacing:0.3px; }
+  .header-right { display:flex; align-items:center; gap:14px; }
+  .user-badge { font-size:12px; color:rgba(255,255,255,0.6); }
+
+  /* NAV TABS */
+  .nav-tabs { background:white; border-bottom:2px solid var(--border); padding:0 28px; display:flex; gap:0; box-shadow:var(--shadow-sm); }
+  .nav-tab { padding:15px 22px; font-size:13.5px; font-weight:500; color:var(--text-light); cursor:pointer; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all 0.2s; white-space:nowrap; letter-spacing:0.2px; }
+  .nav-tab.active { color:var(--primary); border-bottom-color:var(--accent); font-weight:600; }
+  .nav-tab:hover:not(.active) { color:var(--text); background:var(--bg); }
+
+  /* VIEWS */
+  .view { display:none; }
+  .view.active { display:block; }
+
+  /* ÜBERSICHT */
+  .overview-container { padding:28px; max-width:1280px; margin:0 auto; }
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; margin-bottom:32px; }
+  .stat-card { background:white; border-radius:var(--radius-lg); padding:22px 24px; box-shadow:var(--shadow); border-top:3px solid var(--accent); transition:transform 0.2s,box-shadow 0.2s; }
+  .stat-card:hover { transform:translateY(-2px); box-shadow:var(--shadow-lg); }
+  .stat-label { font-size:11px; text-transform:uppercase; letter-spacing:1.2px; color:var(--text-light); margin-bottom:8px; font-weight:600; }
+  .stat-value { font-size:32px; font-weight:700; color:var(--primary); font-family:'Playfair Display',serif; line-height:1; }
+  .table-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:12px; }
+  .table-header h2 { font-size:19px; font-weight:700; color:var(--primary); font-family:'Playfair Display',serif; }
+  .table-controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .ankauf-table { background:white; border-radius:var(--radius-lg); box-shadow:var(--shadow); overflow:hidden; }
+  .ankauf-table table { width:100%; border-collapse:collapse; }
+  .ankauf-table th { background:var(--primary); color:white; padding:13px 16px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.8px; }
+  .ankauf-table th.sortable { cursor:pointer; user-select:none; white-space:nowrap; }
+  .ankauf-table th.sortable:hover { background:var(--primary-light); }
+  .ankauf-table th.sortable::after  { content:' ⇅'; opacity:0.35; font-size:9px; }
+  .ankauf-table th.sort-asc::after  { content:' ▲'; opacity:1; color:var(--accent); }
+  .ankauf-table th.sort-desc::after { content:' ▼'; opacity:1; color:var(--accent); }
+  .ankauf-table td { padding:13px 16px; border-bottom:1px solid #eff1f5; font-size:13.5px; vertical-align:middle; }
+  .ankauf-table tr:hover td { background:#f7f9fc; }
+  .ankauf-table tr:last-child td { border-bottom:none; }
+  .status-badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+  .status-neu              { background:#dbeafe; color:#1e40af; }
+  .status-bewertet         { background:#fef9c3; color:#854d0e; }
+  .status-vertrag_erstellt { background:#dcfce7; color:#166534; }
+  .status-abgeschlossen    { background:#f3e8ff; color:#6b21a8; }
+  .status-abgelehnt        { background:#fee2e2; color:#991b1b; }
+
+  /* FORMULAR */
+  .form-container { padding:28px; max-width:980px; margin:0 auto; }
+  .form-section { background:white; border-radius:var(--radius-lg); padding:28px; margin-bottom:20px; box-shadow:var(--shadow); }
+  .section-title { font-family:'Playfair Display',serif; font-size:19px; font-weight:700; color:var(--primary); margin-bottom:22px; padding-bottom:14px; border-bottom:2px solid var(--accent); display:flex; align-items:center; gap:12px; }
+  .section-icon { width:30px; height:30px; background:var(--primary); border-radius:50%; display:flex; align-items:center; justify-content:center; color:white; font-size:13px; font-weight:700; flex-shrink:0; }
+  .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:16px; }
+  .form-group { display:flex; flex-direction:column; gap:6px; }
+  .form-group.full-width { grid-column:1/-1; }
+  label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.7px; color:var(--text-light); }
+  input, select, textarea { padding:10px 13px; border:1.5px solid var(--border); border-radius:var(--radius); font-family:'Inter',sans-serif; font-size:14px; color:var(--text); transition:border-color 0.15s,box-shadow 0.15s; background:white; }
+  input:focus, select:focus, textarea:focus { outline:none; border-color:var(--primary); box-shadow:0 0 0 3px rgba(0,51,102,0.1); }
+  textarea { resize:vertical; min-height:80px; }
+
+  /* CHECKBOXEN */
+  .checkbox-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:10px; }
+  .checkbox-item { display:flex; align-items:center; gap:10px; cursor:pointer; padding:9px 13px; border-radius:var(--radius); border:1.5px solid var(--border); transition:all 0.15s; user-select:none; background:white; }
+  .checkbox-item:hover { border-color:var(--primary); background:#f0f5ff; }
+  .checkbox-item input[type="checkbox"] { width:17px; height:17px; cursor:pointer; accent-color:var(--primary); padding:0; border:none; box-shadow:none; }
+  .checkbox-item span { font-size:13px; font-weight:500; }
+
+  /* REIFEN ZEILE MIT PROFILTIEFE */
+  .reifen-row { display:flex; align-items:center; gap:10px; padding:9px 13px; border-radius:var(--radius); border:1.5px solid var(--border); background:white; flex-wrap:wrap; transition:border-color 0.15s; }
+  .reifen-row:hover { border-color:var(--primary); background:#f0f5ff; }
+  .reifen-row input[type="checkbox"] { width:17px; height:17px; cursor:pointer; accent-color:var(--primary); flex-shrink:0; }
+  .reifen-row .reifen-label { font-size:13px; font-weight:500; cursor:pointer; flex:1; }
+  .profil-wrap { display:none; align-items:center; gap:6px; margin-left:auto; }
+  .profil-wrap.show { display:flex; }
+  .profil-wrap input { width:75px; padding:5px 8px; font-size:13px; text-align:right; border-radius:6px; }
+  .profil-wrap span { font-size:12px; color:var(--text-light); white-space:nowrap; }
+
+  /* SUB-SECTION TRENNER */
+  .sub-section { margin-top:20px; padding-top:18px; border-top:1px dashed var(--border); }
+  .sub-label { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; color:var(--text-light); margin-bottom:12px; }
+
+  /* MÄNGEL TABELLE */
+  .maengel-table { width:100%; border-collapse:collapse; font-size:13px; margin-top:4px; }
+  .maengel-table th { background:var(--primary); color:white; padding:10px 12px; text-align:left; font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:0.7px; }
+  .maengel-table th:last-child { text-align:right; width:140px; }
+  .maengel-table td { padding:6px 8px; border-bottom:1px solid #eff1f5; vertical-align:middle; }
+  .maengel-table td:first-child { font-weight:600; color:var(--text-light); white-space:nowrap; font-size:12.5px; width:22%; }
+  .maengel-table td:last-child { width:140px; }
+  .maengel-table input[type="text"]   { width:100%; padding:6px 9px; font-size:13px; border:1.5px solid var(--border); border-radius:6px; }
+  .maengel-table input[type="number"] { width:100%; padding:6px 9px; font-size:13px; border:1.5px solid var(--border); border-radius:6px; text-align:right; }
+  .maengel-table tr:hover td { background:#f7f9fc; }
+  .maengel-table tr.gesamt-row td { background:var(--primary); color:white; font-weight:700; font-size:13.5px; padding:11px 12px; border-bottom:none; }
+  .gesamt-value { font-family:'Playfair Display',serif; font-size:16px; text-align:right; }
+
+  /* BUTTONS */
+  .btn { padding:11px 22px; border-radius:var(--radius); font-family:'Inter',sans-serif; font-size:13.5px; font-weight:600; cursor:pointer; border:none; transition:all 0.18s; display:inline-flex; align-items:center; gap:7px; letter-spacing:0.1px; }
+  .btn-primary { background:var(--primary); color:white; box-shadow:0 2px 8px rgba(0,51,102,0.25); }
+  .btn-primary:hover { background:var(--primary-dark); transform:translateY(-1px); box-shadow:0 4px 14px rgba(0,51,102,0.3); }
+  .btn-accent  { background:var(--accent); color:white; box-shadow:0 2px 8px rgba(200,152,42,0.3); }
+  .btn-accent:hover  { background:var(--accent-hover); }
+  .btn-success { background:var(--success); color:white; }
+  .btn-outline { background:transparent; color:var(--primary); border:2px solid var(--primary); }
+  .btn-outline:hover { background:var(--primary); color:white; }
+  .btn-danger  { background:var(--error); color:white; }
+  .btn-sm { padding:6px 13px; font-size:12px; }
+  .form-actions { display:flex; gap:12px; justify-content:flex-end; margin-top:8px; }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:28px; right:28px; padding:14px 20px; border-radius:10px; color:white; font-size:14px; font-weight:500; z-index:9999; box-shadow:var(--shadow-lg); transform:translateY(80px); opacity:0; transition:all 0.3s ease; max-width:360px; }
+  .toast.show { transform:translateY(0); opacity:1; }
+  .toast.success { background:var(--success); }
+  .toast.error   { background:var(--error); }
+  .toast.info    { background:var(--primary); }
+
+  /* LOADING */
+  .loading { display:flex; align-items:center; justify-content:center; padding:48px; color:var(--text-light); gap:12px; }
+  .spinner { width:24px; height:24px; border:3px solid var(--border); border-top-color:var(--primary); border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .empty-state { text-align:center; padding:64px 20px; color:var(--text-light); }
+  .empty-state .empty-icon { font-size:52px; margin-bottom:16px; }
+  .empty-state h3 { font-size:18px; margin-bottom:8px; color:var(--text); }
+
+  /* MODAL */
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:500; align-items:center; justify-content:center; padding:20px; backdrop-filter:blur(2px); }
+  .modal-overlay.active { display:flex; }
+  .modal { background:white; border-radius:var(--radius-lg); padding:36px; max-width:660px; width:100%; max-height:88vh; overflow-y:auto; box-shadow:var(--shadow-lg); }
+  .modal-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; padding-bottom:18px; border-bottom:2px solid var(--border); }
+  .modal-title { font-family:'Playfair Display',serif; font-size:22px; font-weight:700; color:var(--primary); }
+  .modal-close { background:none; border:none; font-size:22px; cursor:pointer; color:var(--text-light); line-height:1; padding:4px; border-radius:6px; transition:background 0.15s; }
+  .modal-close:hover { background:var(--bg); }
+  .detail-row { display:flex; justify-content:space-between; padding:9px 0; border-bottom:1px solid #f0f2f5; font-size:13.5px; gap:12px; }
+  .detail-label { color:var(--text-light); font-weight:500; flex-shrink:0; }
+  .detail-value { font-weight:600; text-align:right; }
+  .price-box { background:var(--primary); color:white; border-radius:10px; padding:18px 22px; margin-top:18px; display:flex; justify-content:space-between; align-items:center; }
+  .price-label { font-size:13px; opacity:0.75; }
+  .price-value { font-family:'Playfair Display',serif; font-size:30px; font-weight:700; color:var(--accent); }
+
+  /* RESPONSIVE */
+  @media (max-width:640px) {
+    .form-grid { grid-template-columns:1fr; }
+    .stats-row { grid-template-columns:repeat(2,1fr); }
+    .nav-tab { padding:12px 14px; font-size:13px; }
+    .form-container, .overview-container { padding:16px; }
+    .ankauf-table { overflow-x:auto; }
+    .table-controls { flex-wrap:wrap; }
+    .maengel-table td:first-child { font-size:11px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo-mark">
+      <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="18" cy="18" r="16" stroke="#c8982a" stroke-width="2"/>
+        <path d="M8 22 C10 14,14 12,18 12 C22 12,26 14,28 22" stroke="#c8982a" stroke-width="2" stroke-linecap="round" fill="none"/>
+        <circle cx="11" cy="22" r="3" fill="#c8982a"/>
+        <circle cx="25" cy="22" r="3" fill="#c8982a"/>
+        <rect x="10" y="20" width="16" height="2" rx="1" fill="#c8982a"/>
+      </svg>
+    </div>
+    <div class="login-brand">Autohaus Stieber</div>
+    <div class="login-sub">Fahrzeugankauf · System</div>
+    <h2>Bitte anmelden</h2>
+    <div style="display:flex;flex-direction:column;gap:14px;text-align:left;">
+      <div class="form-group">
+        <label>E-Mail</label>
+        <input type="email" id="login-email" placeholder="name@autohaus-stieber.de">
+      </div>
+      <div class="form-group">
+        <label>Passwort</label>
+        <input type="password" id="login-password" placeholder="••••••••" onkeydown="if(event.key==='Enter') doLogin()">
+      </div>
+      <button class="btn btn-primary" onclick="doLogin()" style="width:100%;justify-content:center;padding:14px;font-size:15px;">Anmelden</button>
+      <div id="login-error" style="color:var(--error);font-size:13px;text-align:center;display:none;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none;">
+
+  <header>
+    <div class="header-left">
+      <div class="header-logo-mark">
+        <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M4 24 C7 14,12 11,18 11 C24 11,29 14,32 24" stroke="#c8982a" stroke-width="2.2" stroke-linecap="round" fill="none"/>
+          <circle cx="8"  cy="24" r="3.5" fill="#c8982a"/>
+          <circle cx="28" cy="24" r="3.5" fill="#c8982a"/>
+          <rect x="7" y="22" width="22" height="2.5" rx="1.25" fill="#c8982a"/>
+        </svg>
+      </div>
+      <div><div class="header-brand">Autohaus Stieber</div></div>
+      <div class="header-divider"></div>
+      <div class="header-title">Fahrzeugankauf</div>
+    </div>
+    <div class="header-right">
+      <span class="user-badge" id="user-name"></span>
+      <button class="btn btn-outline btn-sm" onclick="doLogout()" style="border-color:rgba(255,255,255,0.3);color:rgba(255,255,255,0.85);">Abmelden</button>
+    </div>
+  </header>
+
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="switchTab('overview')">📋 Übersicht</div>
+    <div class="nav-tab" onclick="switchTab('new')">➕ Neuer Ankauf</div>
+  </div>
+
+  <!-- ÜBERSICHT -->
+  <div id="view-overview" class="view active">
+    <div class="overview-container">
+      <div class="stats-row" id="stats-row">
+        <div class="stat-card"><div class="stat-label">Gesamt</div><div class="stat-value" id="stat-gesamt">–</div></div>
+        <div class="stat-card"><div class="stat-label">Diesen Monat</div><div class="stat-value" id="stat-monat">–</div></div>
+        <div class="stat-card"><div class="stat-label">In Bearbeitung</div><div class="stat-value" id="stat-offen">–</div></div>
+        <div class="stat-card"><div class="stat-label">Abgeschlossen</div><div class="stat-value" id="stat-abgeschlossen">–</div></div>
+      </div>
+      <div class="table-header">
+        <h2>Alle Ankäufe</h2>
+        <div class="table-controls">
+          <input type="text" id="search-input" placeholder="Suchen…" style="width:200px;padding:8px 12px;font-size:13px;" oninput="applyFilterSort()">
+          <select id="status-filter" style="padding:8px 12px;font-size:13px;" onchange="applyFilterSort()">
+            <option value="">Alle Status</option>
+            <option value="neu">Neu</option>
+            <option value="bewertet">Bewertet</option>
+            <option value="vertrag_erstellt">Vertrag erstellt</option>
+            <option value="abgeschlossen">Abgeschlossen</option>
+            <option value="abgelehnt">Abgelehnt</option>
+          </select>
+          <button class="btn btn-accent btn-sm" onclick="loadAnkauefe()">↻ Aktualisieren</button>
+        </div>
+      </div>
+      <div class="ankauf-table">
+        <div id="table-loading" class="loading"><div class="spinner"></div>Lade Daten…</div>
+        <div id="table-empty" class="empty-state" style="display:none;">
+          <div class="empty-icon">🚗</div>
+          <h3>Noch keine Ankäufe</h3>
+          <p>Klicke auf „Neuer Ankauf" um zu starten.</p>
+        </div>
+        <table id="ankauf-table" style="display:none;">
+          <thead>
+            <tr>
+              <th class="sortable" onclick="sortBy('erstellt_am')"   id="th-erstellt_am">Datum</th>
+              <th class="sortable" onclick="sortBy('fz_hersteller')" id="th-fz_hersteller">Fahrzeug</th>
+              <th>Kennzeichen</th>
+              <th class="sortable" onclick="sortBy('vk_nachname')"   id="th-vk_nachname">Verkäufer</th>
+              <th class="sortable" onclick="sortBy('fz_km_stand')"   id="th-fz_km_stand">KM-Stand</th>
+              <th class="sortable" onclick="sortBy('ankaufspreis')"  id="th-ankaufspreis">Ankaufspreis</th>
+              <th class="sortable" onclick="sortBy('status')"        id="th-status">Status</th>
+              <th>Aktion</th>
+            </tr>
+          </thead>
+          <tbody id="table-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEUER ANKAUF FORMULAR -->
+  <div id="view-new" class="view">
+    <div class="form-container">
+
+      <!-- 1 · Verkäufer -->
+      <div class="form-section">
+        <div class="section-title"><div class="section-icon">1</div>Verkäufer (Privatkunde)</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Vorname *</label><input type="text" id="vk_vorname" placeholder="Max"></div>
+          <div class="form-group"><label>Nachname *</label><input type="text" id="vk_nachname" placeholder="Mustermann"></div>
+          <div class="form-group full-width"><label>Straße + Hausnummer</label><input type="text" id="vk_strasse" placeholder="Musterstraße 1"></div>
+          <div class="form-group"><label>PLZ</label><input type="text" id="vk_plz" placeholder="70439"></div>
+          <div class="form-group"><label>Ort</label><input type="text" id="vk_ort" placeholder="Stuttgart"></div>
+          <div class="form-group"><label>Telefon</label><input type="tel" id="vk_telefon" placeholder="0711 12345678"></div>
+          <div class="form-group"><label>E-Mail</label><input type="email" id="vk_email" placeholder="max@email.de"></div>
+        </div>
+      </div>
+
+      <!-- 2 · Fahrzeugdaten -->
+      <div class="form-section">
+        <div class="section-title"><div class="section-icon">2</div>Fahrzeugdaten</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Hersteller *</label><input type="text" id="fz_hersteller" placeholder="VW, BMW, Mercedes…"></div>
+          <div class="form-group"><label>Modell *</label><input type="text" id="fz_modell" placeholder="Golf, 3er, A-Klasse…"></div>
+          <div class="form-group"><label>Typ / Ausstattungslinie</label><input type="text" id="fz_typ" placeholder="GTI, Sport, Elegance…"></div>
+          <div class="form-group"><label>Kennzeichen</label><input type="text" id="fz_kennzeichen" placeholder="S-AB 1234" style="text-transform:uppercase;"></div>
+          <div class="form-group"><label>Fahrgestellnummer (FIN)</label><input type="text" id="fz_fahrgestellnr" placeholder="WVW…" style="text-transform:uppercase;"></div>
+          <div class="form-group"><label>Erstzulassung (TT.MM.JJJJ)</label><input type="date" id="fz_erstzulassung"></div>
+          <div class="form-group"><label>KM-Stand</label><input type="number" id="fz_km_stand" placeholder="85000"></div>
+          <div class="form-group">
+            <label>Kraftstoff</label>
+            <select id="fz_kraftstoff">
+              <option value="">– wählen –</option>
+              <option>Benzin</option><option>Diesel</option><option>Hybrid</option>
+              <option>Plug-in-Hybrid</option><option>Elektro</option><option>Gas (CNG)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Getriebe</label>
+            <select id="fz_getriebe">
+              <option value="">– wählen –</option>
+              <option>Schaltgetriebe</option><option>Automatik</option><option>Doppelkupplungsgetriebe</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Antrieb</label>
+            <select id="fz_antrieb">
+              <option value="">– wählen –</option>
+              <option>2WD (Frontantrieb)</option>
+              <option>2WD (Heckantrieb)</option>
+              <option>4WD / Allrad</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Leistung (PS)</label><input type="number" id="fz_leistung_kw" placeholder="150"></div>
+          <div class="form-group"><label>Farbe</label><input type="text" id="fz_farbe" placeholder="Silber Metallic"></div>
+          <div class="form-group"><label>Anzahl Vorbesitzer</label><input type="number" id="fz_halteranzahl" placeholder="1" min="1"></div>
+          <div class="form-group"><label>HU bis</label><input type="month" id="fz_hu_datum"></div>
+          <div class="form-group"><label>Anzahl Schlüssel</label><input type="number" id="fz_anzahl_schluessel" placeholder="2" min="0"></div>
+        </div>
+      </div>
+
+      <!-- 3 · Ausstattung -->
+      <div class="form-section">
+        <div class="section-title"><div class="section-icon">3</div>Ausstattung</div>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_navi"><span>🗺️ Navigation (Werks)</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_soundsystem"><span>📱 Apple CarPlay / Android Auto</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_klimaautomatik"><span>❄️ Klimaautomatik</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_sitzheizung"><span>🪑 Sitzheizung vorne</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_shz_hinten"><span>🪑 Sitzheizung hinten</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_leder"><span>✨ Lederausstattung</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_panorama"><span>🔲 Panoramadach</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_ahk"><span>🔗 Anhängerkupplung</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_standhz"><span>🌡️ Standheizung</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_lenkradheizung"><span>🎯 Lenkradheizung</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_eph_vorne"><span>🔊 Einparkhilfe vorne (EPH)</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_eph_hinten"><span>🔊 Einparkhilfe hinten (EPH)</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_kamera_hinten"><span>📷 Rückfahrkamera</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="ausstattung_kamera_360"><span>📷 360°-Kamera</span></label>
+        </div>
+
+        <div class="sub-section">
+          <div class="sub-label">Reifen</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="reifen-row" id="reifen-sommer-row">
+              <input type="checkbox" id="reifen_sommer" onchange="toggleProfil('sommer')">
+              <span class="reifen-label" onclick="document.getElementById('reifen_sommer').click()">☀️ Sommerreifen vorhanden</span>
+              <div class="profil-wrap" id="profil-sommer-wrap">
+                <input type="number" id="reifen_sommer_profil" placeholder="6.5" step="0.5" min="0" max="15">
+                <span>mm Profil</span>
+              </div>
+            </div>
+            <div class="reifen-row" id="reifen-winter-row">
+              <input type="checkbox" id="reifen_winter" onchange="toggleProfil('winter')">
+              <span class="reifen-label" onclick="document.getElementById('reifen_winter').click()">❄️ Winterreifen vorhanden</span>
+              <div class="profil-wrap" id="profil-winter-wrap">
+                <input type="number" id="reifen_winter_profil" placeholder="5.0" step="0.5" min="0" max="15">
+                <span>mm Profil</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 4 · Zusicherungen des Verkäufers -->
+      <div class="form-section">
+        <div class="section-title"><div class="section-icon">4</div>Zusicherungen des Verkäufers</div>
+        <div class="checkbox-grid">
+          <label class="checkbox-item"><input type="checkbox" id="zusicherung_unfallfrei"><span>✅ Unfallfrei</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="zusicherung_kein_hagel"><span>✅ Kein Hagelschaden</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="zusicherung_kein_nachlack"><span>✅ Nicht nachlackiert</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="zusicherung_kein_mietwagen"><span>✅ Kein Mietfahrzeug</span></label>
+          <label class="checkbox-item"><input type="checkbox" id="zusicherung_kein_eu_import"><span>✅ Kein EU-Import</span></label>
+        </div>
+
+        <div class="sub-section">
+          <div class="sub-label">Kundendiensthistorie</div>
+          <div class="form-grid" style="margin-top:0;">
+            <div class="form-group">
+              <label>Nächster KD fällig bei (km)</label>
+              <input type="number" id="kd_km_faellig" placeholder="z.B. 90000" step="1000">
+            </div>
+            <div class="form-group">
+              <label>Nächster KD fällig am</label>
+              <input type="date" id="kd_datum_faellig">
+            </div>
+            <div class="form-group" style="justify-content:flex-end;">
+              <label style="visibility:hidden;">Platzhalter</label>
+              <label class="checkbox-item" style="margin-top:0;">
+                <input type="checkbox" id="kd_alle_durchgefuehrt">
+                <span>✅ Alle KD lückenlos nachgewiesen</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5 · Mängel & Bewertung -->
+      <div class="form-section">
+        <div class="section-title"><div class="section-icon">5</div>Mängel &amp; Bewertung</div>
+        <table class="maengel-table">
+          <thead>
+            <tr>
+              <th>Baugruppe</th>
+              <th>Mängelbeschreibung</th>
+              <th style="text-align:right;">Instandsetzung (€)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Hauptuntersuchung (HU)</td><td><input type="text" id="mn_hu" placeholder="z.B. HU fällig, abgelaufen…"></td><td><input type="number" id="mn_hu_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Kundendienst</td><td><input type="text" id="mn_kd" placeholder="z.B. Öl + Filter, Zahnriemen…"></td><td><input type="number" id="mn_kd_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Vorderachse</td><td><input type="text" id="mn_vorderachse" placeholder="z.B. Traggelenke, Spurstangen…"></td><td><input type="number" id="mn_vorderachse_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Hinterachse</td><td><input type="text" id="mn_hinterachse" placeholder="z.B. Längslenker, Silentbuchsen…"></td><td><input type="number" id="mn_hinterachse_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Unterboden</td><td><input type="text" id="mn_unterboden" placeholder="z.B. Rostschäden, Auspuff…"></td><td><input type="number" id="mn_unterboden_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Motor</td><td><input type="text" id="mn_motor" placeholder="z.B. Ölverlust, Motorgeräusch…"></td><td><input type="number" id="mn_motor_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Getriebe</td><td><input type="text" id="mn_getriebe" placeholder="z.B. Schaltprobleme, undicht…"></td><td><input type="number" id="mn_getriebe_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Reifen</td><td><input type="text" id="mn_reifen" placeholder="z.B. Reifen erneuern…"></td><td><input type="number" id="mn_reifen_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Bremsen</td><td><input type="text" id="mn_bremsen" placeholder="z.B. Beläge + Scheiben VA…"></td><td><input type="number" id="mn_bremsen_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Karosserie/Lack 1</td><td><input type="text" id="mn_karosserie1" placeholder="z.B. Delle Fahrertür…"></td><td><input type="number" id="mn_karosserie1_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Karosserie/Lack 2</td><td><input type="text" id="mn_karosserie2" placeholder="z.B. Kratzer Stoßstange…"></td><td><input type="number" id="mn_karosserie2_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Karosserie/Lack 3</td><td><input type="text" id="mn_karosserie3" placeholder="z.B. Steinschlag Motorhaube…"></td><td><input type="number" id="mn_karosserie3_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Karosserie/Lack 4</td><td><input type="text" id="mn_karosserie4" placeholder=""></td><td><input type="number" id="mn_karosserie4_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Karosserie/Lack 5</td><td><input type="text" id="mn_karosserie5" placeholder=""></td><td><input type="number" id="mn_karosserie5_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Aufbereitung</td><td><input type="text" id="mn_aufbereitung" placeholder="z.B. Innen- und Außenpflege…"></td><td><input type="number" id="mn_aufbereitung_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+            <tr><td>Garantierückstellung</td><td><input type="text" id="mn_garantie" placeholder="z.B. Getriebegarantie 12 Monate…"></td><td><input type="number" id="mn_garantie_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+          </tbody>
+          <tfoot>
+            <tr class="gesamt-row">
+              <td colspan="2">Gesamt Instandsetzungskosten</td>
+              <td class="gesamt-value" id="mn_gesamt_display">0,00 €</td>
+            </tr>
+          </tfoot>
+        </table>
+        <input type="hidden" id="aufwendungen_gesamt">
+
+        <div class="form-grid" style="margin-top:20px;">
+          <div class="form-group">
+            <label>Ankaufspreis (€) *</label>
+            <input type="number" id="ankaufspreis" placeholder="8500" step="100">
+          </div>
+          <div class="form-group">
+            <div style="padding:10px 0;font-size:13px;color:var(--text-light);margin-top:22px;">
+              → Marge = Ankaufspreis − Gesamtkosten
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 6 · Status & Notizen -->
+      <div class="form-section">
+        <div class="section-title"><div class="section-icon">6</div>Status &amp; Notizen</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Status</label>
+            <select id="status">
+              <option value="neu">Neu</option>
+              <option value="bewertet">Bewertet</option>
+              <option value="vertrag_erstellt">Vertrag erstellt</option>
+              <option value="abgeschlossen">Abgeschlossen</option>
+              <option value="abgelehnt">Abgelehnt</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Bearbeiter</label>
+            <input type="text" id="bearbeiter_name" placeholder="Name des Mitarbeiters">
+          </div>
+          <div class="form-group full-width">
+            <label>Interne Notizen</label>
+            <textarea id="notizen" placeholder="Interne Anmerkungen…" rows="3"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-outline" onclick="resetForm()">Formular leeren</button>
+        <button class="btn btn-accent" onclick="saveAnkauf()" id="save-btn">💾 Ankauf speichern</button>
+      </div>
+
+    </div>
+  </div>
+
+</div><!-- /#app -->
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Fahrzeugdetails</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-content"></div>
+    <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;">
+      <button class="btn btn-outline" onclick="closeModal()">Schließen</button>
+      <button class="btn btn-primary" id="modal-edit-btn">✏️ Bearbeiten</button>
+      <button class="btn btn-success" id="modal-zustand-btn">📋 Zustandsbericht</button>
+      <button class="btn btn-accent" id="modal-print-btn">🖨️ Kaufvertrag drucken</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== SUPABASE CONFIG =====
+const SUPABASE_URL = 'https://mnglpqeqmoxccqnztqez.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_CDpY6_W07WdHFKYv0cx59g_GDm7UlZF';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allAnkauefe = [];
+let editingId   = null;
+let sortField   = 'erstellt_am';
+let sortDir     = 'desc';
+
+// Mängel-Zeilen Definition
+const MN_ROWS = [
+  { key:'hu',          label:'Hauptuntersuchung (HU)' },
+  { key:'kd',          label:'Kundendienst' },
+  { key:'vorderachse', label:'Vorderachse' },
+  { key:'hinterachse', label:'Hinterachse' },
+  { key:'unterboden',  label:'Unterboden' },
+  { key:'motor',       label:'Motor' },
+  { key:'getriebe',    label:'Getriebe' },
+  { key:'reifen',      label:'Reifen' },
+  { key:'bremsen',     label:'Bremsen' },
+  { key:'karosserie1', label:'Karosserie/Lack 1' },
+  { key:'karosserie2', label:'Karosserie/Lack 2' },
+  { key:'karosserie3', label:'Karosserie/Lack 3' },
+  { key:'karosserie4', label:'Karosserie/Lack 4' },
+  { key:'karosserie5', label:'Karosserie/Lack 5' },
+  { key:'aufbereitung',label:'Aufbereitung' },
+  { key:'garantie',    label:'Garantierückstellung' },
+];
+
+// ===== AUTH =====
+async function checkSession() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session) showApp(session.user);
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pw    = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  if (!email || !pw) { errEl.textContent='Bitte E-Mail und Passwort eingeben.'; errEl.style.display='block'; return; }
+  const { data, error } = await db.auth.signInWithPassword({ email, password:pw });
+  if (error) { errEl.textContent='Anmeldung fehlgeschlagen. Zugangsdaten prüfen.'; errEl.style.display='block'; return; }
+  showApp(data.user);
+}
+
+function showApp(user) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  document.getElementById('user-name').textContent = user.email;
+  document.getElementById('bearbeiter_name').value = user.email.split('@')[0];
+  loadAnkauefe();
+}
+
+async function doLogout() {
+  await db.auth.signOut();
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ===== NAVIGATION =====
+function switchTab(tab) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('view-' + tab).classList.add('active');
+  if (tab === 'overview') loadAnkauefe();
+  if (tab === 'new' && !editingId) resetForm();
+}
+
+function switchTabDirect(tab) {
+  document.querySelectorAll('.nav-tab').forEach((t,i) => t.classList.toggle('active',(tab==='overview'&&i===0)||(tab==='new'&&i===1)));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + tab).classList.add('active');
+  if (tab === 'overview') loadAnkauefe();
+}
+
+// ===== DATEN LADEN =====
+async function loadAnkauefe() {
+  document.getElementById('table-loading').style.display = 'flex';
+  document.getElementById('ankauf-table').style.display  = 'none';
+  document.getElementById('table-empty').style.display   = 'none';
+  const { data, error } = await db.from('fahrzeugankauf').select('*').order('erstellt_am', { ascending:false });
+  document.getElementById('table-loading').style.display = 'none';
+  if (error) { showToast('Fehler: ' + error.message, 'error'); return; }
+  allAnkauefe = data || [];
+  updateStats(allAnkauefe);
+  applyFilterSort();
+}
+
+function renderTable(data) {
+  if (data.length === 0) {
+    document.getElementById('table-empty').style.display  = 'block';
+    document.getElementById('ankauf-table').style.display = 'none';
+    return;
+  }
+  document.getElementById('ankauf-table').style.display = 'table';
+  document.getElementById('table-empty').style.display  = 'none';
+  document.getElementById('table-body').innerHTML = data.map(a => `
+    <tr>
+      <td>${formatDate(a.erstellt_am)}</td>
+      <td><strong>${a.fz_hersteller} ${a.fz_modell}${a.fz_typ?' '+a.fz_typ:''}</strong></td>
+      <td>${a.fz_kennzeichen||'–'}</td>
+      <td>${a.vk_vorname||''} ${a.vk_nachname||''}</td>
+      <td>${a.fz_km_stand?a.fz_km_stand.toLocaleString('de-DE')+' km':'–'}</td>
+      <td><strong>${a.ankaufspreis?formatEuro(a.ankaufspreis):'–'}</strong></td>
+      <td><span class="status-badge status-${a.status}">${statusLabel(a.status)}</span></td>
+      <td><button class="btn btn-sm btn-outline" onclick="showDetail('${a.id}')">Details</button></td>
+    </tr>`).join('');
+}
+
+function updateStats(data) {
+  const now = new Date();
+  const thisMo = data.filter(a => { const d=new Date(a.erstellt_am); return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear(); });
+  const offen  = data.filter(a => ['neu','bewertet','vertrag_erstellt'].includes(a.status));
+  const abg    = data.filter(a => a.status==='abgeschlossen');
+  document.getElementById('stat-gesamt').textContent       = data.length;
+  document.getElementById('stat-monat').textContent        = thisMo.length;
+  document.getElementById('stat-offen').textContent        = offen.length;
+  document.getElementById('stat-abgeschlossen').textContent= abg.length;
+}
+
+// ===== SORTIEREN =====
+function sortBy(field) {
+  if (sortField===field) sortDir = sortDir==='asc'?'desc':'asc';
+  else { sortField=field; sortDir='asc'; }
+  applyFilterSort();
+}
+
+function updateSortIndicators() {
+  ['erstellt_am','fz_hersteller','vk_nachname','fz_km_stand','ankaufspreis','status'].forEach(f => {
+    const th = document.getElementById('th-'+f);
+    if (!th) return;
+    th.classList.remove('sort-asc','sort-desc');
+    if (sortField===f) th.classList.add(sortDir==='asc'?'sort-asc':'sort-desc');
+  });
+}
+
+function applyFilterSort() {
+  const q  = document.getElementById('search-input').value.toLowerCase();
+  const sf = document.getElementById('status-filter').value;
+  let result = allAnkauefe.filter(a => {
+    const txt = (a.fz_hersteller+' '+a.fz_modell+' '+(a.fz_kennzeichen||'')+' '+(a.vk_nachname||'')).toLowerCase().includes(q);
+    return txt && (!sf || a.status===sf);
+  });
+  result.sort((a,b) => {
+    let va=a[sortField], vb=b[sortField];
+    if (va==null&&vb==null) return 0;
+    if (va==null) return 1; if (vb==null) return -1;
+    if (typeof va==='number'&&typeof vb==='number') return sortDir==='asc'?va-vb:vb-va;
+    va=String(va).toLowerCase(); vb=String(vb).toLowerCase();
+    return sortDir==='asc'?(va<vb?-1:va>vb?1:0):(va<vb?1:va>vb?-1:0);
+  });
+  updateSortIndicators();
+  renderTable(result);
+}
+
+// ===== MÄNGEL SUMME =====
+function calcSumme() {
+  const total = MN_ROWS.reduce((s,r) => s + (parseFloat(document.getElementById('mn_'+r.key+'_kosten')?.value)||0), 0);
+  document.getElementById('mn_gesamt_display').textContent = formatEuro(total);
+  document.getElementById('aufwendungen_gesamt').value = total;
+}
+
+// ===== REIFEN PROFILTIEFE =====
+function toggleProfil(typ) {
+  const wrap = document.getElementById('profil-'+typ+'-wrap');
+  const cb   = document.getElementById('reifen_'+typ);
+  wrap.classList.toggle('show', cb.checked);
+  if (!cb.checked) document.getElementById('reifen_'+typ+'_profil').value='';
+}
+
+// ===== SPEICHERN =====
+async function saveAnkauf() {
+  const btn = document.getElementById('save-btn');
+  btn.disabled=true; btn.textContent='⏳ Speichern…';
+  const hersteller = document.getElementById('fz_hersteller').value.trim();
+  const modell     = document.getElementById('fz_modell').value.trim();
+  if (!hersteller||!modell) { showToast('Bitte Hersteller und Modell angeben!','error'); btn.disabled=false; btn.textContent='💾 Ankauf speichern'; return; }
+
+  const total = MN_ROWS.reduce((s,r)=>s+(parseFloat(document.getElementById('mn_'+r.key+'_kosten')?.value)||0),0);
+
+  const payload = {
+    vk_vorname:v('vk_vorname'), vk_nachname:v('vk_nachname'), vk_strasse:v('vk_strasse'),
+    vk_plz:v('vk_plz'), vk_ort:v('vk_ort'), vk_telefon:v('vk_telefon'), vk_email:v('vk_email'),
+    fz_hersteller:hersteller, fz_modell:modell, fz_typ:v('fz_typ'),
+    fz_kennzeichen:v('fz_kennzeichen').toUpperCase(),
+    fz_fahrgestellnr:v('fz_fahrgestellnr').toUpperCase(),
+    fz_erstzulassung:v('fz_erstzulassung')||null,
+    fz_km_stand:parseInt(v('fz_km_stand'))||null,
+    fz_kraftstoff:v('fz_kraftstoff'), fz_getriebe:v('fz_getriebe'), fz_antrieb:v('fz_antrieb'),
+    fz_leistung_kw:parseInt(v('fz_leistung_kw'))||null,
+    fz_farbe:v('fz_farbe'), fz_halteranzahl:parseInt(v('fz_halteranzahl'))||null,
+    fz_hu_datum:v('fz_hu_datum')||null,
+    fz_anzahl_schluessel:parseInt(v('fz_anzahl_schluessel'))||null,
+    // Ausstattung
+    ausstattung_navi:cb('ausstattung_navi'), ausstattung_soundsystem:cb('ausstattung_soundsystem'),
+    ausstattung_klimaautomatik:cb('ausstattung_klimaautomatik'),
+    ausstattung_sitzheizung:cb('ausstattung_sitzheizung'), ausstattung_shz_hinten:cb('ausstattung_shz_hinten'),
+    ausstattung_leder:cb('ausstattung_leder'), ausstattung_panorama:cb('ausstattung_panorama'),
+    ausstattung_ahk:cb('ausstattung_ahk'), ausstattung_standhz:cb('ausstattung_standhz'),
+    ausstattung_lenkradheizung:cb('ausstattung_lenkradheizung'),
+    ausstattung_eph_vorne:cb('ausstattung_eph_vorne'), ausstattung_eph_hinten:cb('ausstattung_eph_hinten'),
+    ausstattung_kamera_hinten:cb('ausstattung_kamera_hinten'), ausstattung_kamera_360:cb('ausstattung_kamera_360'),
+    // Reifen
+    reifen_sommer:cb('reifen_sommer'),
+    reifen_sommer_profil:cb('reifen_sommer')?(parseFloat(v('reifen_sommer_profil'))||null):null,
+    reifen_winter:cb('reifen_winter'),
+    reifen_winter_profil:cb('reifen_winter')?(parseFloat(v('reifen_winter_profil'))||null):null,
+    // Zusicherungen
+    zusicherung_unfallfrei:cb('zusicherung_unfallfrei'), zusicherung_kein_hagel:cb('zusicherung_kein_hagel'),
+    zusicherung_kein_nachlack:cb('zusicherung_kein_nachlack'), zusicherung_kein_mietwagen:cb('zusicherung_kein_mietwagen'),
+    zusicherung_kein_eu_import:cb('zusicherung_kein_eu_import'),
+    // KD
+    kd_km_faellig:parseInt(v('kd_km_faellig'))||null,
+    kd_datum_faellig:v('kd_datum_faellig')||null,
+    kd_alle_durchgefuehrt:cb('kd_alle_durchgefuehrt'),
+    // Mängel
+    ...Object.fromEntries(MN_ROWS.flatMap(r=>[
+      ['mn_'+r.key, v('mn_'+r.key)||null],
+      ['mn_'+r.key+'_kosten', parseFloat(document.getElementById('mn_'+r.key+'_kosten')?.value)||null],
+    ])),
+    aufwendungen_gesamt:total||null,
+    ankaufspreis:parseFloat(v('ankaufspreis'))||null,
+    status:v('status'), bearbeiter_name:v('bearbeiter_name'), notizen:v('notizen'),
+  };
+
+  let error;
+  if (editingId) ({ error } = await db.from('fahrzeugankauf').update(payload).eq('id',editingId));
+  else           ({ error } = await db.from('fahrzeugankauf').insert([payload]));
+
+  btn.disabled=false; btn.textContent='💾 Ankauf speichern';
+  if (error) { showToast('Fehler: '+error.message,'error'); return; }
+  showToast(editingId?'Ankauf aktualisiert ✓':'Ankauf gespeichert ✓','success');
+  editingId=null; resetForm(); switchTabDirect('overview');
+}
+
+// ===== DETAIL MODAL =====
+function showDetail(id) {
+  const a = allAnkauefe.find(x=>x.id===id);
+  if (!a) return;
+  document.getElementById('modal-title').textContent = `${a.fz_hersteller} ${a.fz_modell}${a.fz_typ?' '+a.fz_typ:''}`;
+
+  const totalKosten = MN_ROWS.reduce((s,r)=>s+(parseFloat(a['mn_'+r.key+'_kosten'])||0),0);
+
+  const rows = [
+    ['Datum',         formatDate(a.erstellt_am)],
+    ['Kennzeichen',   a.fz_kennzeichen||'–'],
+    ['Fahrgestell',   a.fz_fahrgestellnr||'–'],
+    ['Erstzulassung', a.fz_erstzulassung?formatDateDE(a.fz_erstzulassung):'–'],
+    ['KM-Stand',      a.fz_km_stand?a.fz_km_stand.toLocaleString('de-DE')+' km':'–'],
+    ['Kraftstoff',    a.fz_kraftstoff||'–'],
+    ['Getriebe',      a.fz_getriebe||'–'],
+    ['Antrieb',       a.fz_antrieb||'–'],
+    ['Leistung',      a.fz_leistung_kw?a.fz_leistung_kw+' PS':'–'],
+    ['Farbe',         a.fz_farbe||'–'],
+    ['Vorbesitzer',   a.fz_halteranzahl||'–'],
+    ['HU bis',        a.fz_hu_datum||'–'],
+    ['Verkäufer',     (a.vk_vorname||'')+' '+(a.vk_nachname||'')||'–'],
+    ['Telefon',       a.vk_telefon||'–'],
+    ['Gesamtkosten',  totalKosten>0?formatEuro(totalKosten):'–'],
+    ['Status',        `<span class="status-badge status-${a.status}">${statusLabel(a.status)}</span>`],
+    ['Bearbeiter',    a.bearbeiter_name||'–'],
+  ];
+
+  document.getElementById('modal-content').innerHTML = `
+    ${rows.map(([l,vv])=>`<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-value">${vv}</span></div>`).join('')}
+    ${a.ankaufspreis?`<div class="price-box"><div><div class="price-label">Ankaufspreis</div></div><div class="price-value">${formatEuro(a.ankaufspreis)}</div></div>`:''}
+  `;
+  document.getElementById('modal-edit-btn').onclick   = ()=>{ closeModal(); editAnkauf(id); };
+  document.getElementById('modal-zustand-btn').onclick = ()=>printZustandsbericht(id);
+  document.getElementById('modal-print-btn').onclick   = ()=>printKaufvertrag(id);
+  document.getElementById('detail-modal').classList.add('active');
+}
+
+function editAnkauf(id) {
+  const a = allAnkauefe.find(x=>x.id===id);
+  if (!a) return;
+  editingId=id;
+  switchTabDirect('new');
+
+  // Text/Number/Select fields
+  const fields = ['vk_vorname','vk_nachname','vk_strasse','vk_plz','vk_ort','vk_telefon','vk_email',
+    'fz_hersteller','fz_modell','fz_typ','fz_kennzeichen','fz_fahrgestellnr','fz_erstzulassung',
+    'fz_km_stand','fz_kraftstoff','fz_getriebe','fz_antrieb','fz_leistung_kw','fz_farbe',
+    'fz_halteranzahl','fz_hu_datum','fz_anzahl_schluessel',
+    'kd_km_faellig','kd_datum_faellig',
+    'ankaufspreis','status','bearbeiter_name','notizen'];
+  fields.forEach(f => {
+    const el = document.getElementById(f);
+    if (!el) return;
+    if (f==='fz_erstzulassung' && a[f]) {
+      // Kompatibilität: YYYY-MM → YYYY-MM-01
+      el.value = a[f].length<=7 ? a[f]+'-01' : a[f];
+    } else if (a[f]!==null && a[f]!==undefined) {
+      el.value = a[f];
+    }
+  });
+
+  // Checkboxen
+  const cbs = ['ausstattung_navi','ausstattung_soundsystem','ausstattung_klimaautomatik',
+    'ausstattung_sitzheizung','ausstattung_shz_hinten','ausstattung_leder','ausstattung_panorama',
+    'ausstattung_ahk','ausstattung_standhz','ausstattung_lenkradheizung',
+    'ausstattung_eph_vorne','ausstattung_eph_hinten','ausstattung_kamera_hinten','ausstattung_kamera_360',
+    'reifen_sommer','reifen_winter',
+    'zusicherung_unfallfrei','zusicherung_kein_hagel','zusicherung_kein_nachlack',
+    'zusicherung_kein_mietwagen','zusicherung_kein_eu_import','kd_alle_durchgefuehrt'];
+  cbs.forEach(f => { const el=document.getElementById(f); if(el) el.checked=!!a[f]; });
+
+  // Reifen Profiltiefe
+  ['sommer','winter'].forEach(t => {
+    const profEl = document.getElementById('reifen_'+t+'_profil');
+    if (profEl && a['reifen_'+t+'_profil']!=null) profEl.value=a['reifen_'+t+'_profil'];
+    toggleProfil(t);
+  });
+
+  // Mängel-Felder
+  MN_ROWS.forEach(r => {
+    const descEl = document.getElementById('mn_'+r.key);
+    const kosEl  = document.getElementById('mn_'+r.key+'_kosten');
+    if (descEl && a['mn_'+r.key]) descEl.value=a['mn_'+r.key];
+    if (kosEl  && a['mn_'+r.key+'_kosten']!=null) kosEl.value=a['mn_'+r.key+'_kosten'];
+  });
+  calcSumme();
+
+  document.getElementById('save-btn').textContent='✏️ Änderungen speichern';
+}
+
+function closeModal() { document.getElementById('detail-modal').classList.remove('active'); }
+
+// ===== ZUSTANDSBERICHT DRUCKEN =====
+function printZustandsbericht(id) {
+  const a = allAnkauefe.find(x=>x.id===id);
+  if (!a) return;
+  const heute = new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const fzBez = [a.fz_hersteller,a.fz_modell,a.fz_typ].filter(Boolean).join(' ');
+  const totalKosten = MN_ROWS.reduce((s,r)=>s+(parseFloat(a['mn_'+r.key+'_kosten'])||0),0);
+
+  const ausstItems = [
+    [a.ausstattung_navi,           'Navigation (Werks)'],
+    [a.ausstattung_soundsystem,    'Apple CarPlay / Android Auto'],
+    [a.ausstattung_klimaautomatik, 'Klimaautomatik'],
+    [a.ausstattung_sitzheizung,    'Sitzheizung vorne'],
+    [a.ausstattung_shz_hinten,     'Sitzheizung hinten'],
+    [a.ausstattung_leder,          'Lederausstattung'],
+    [a.ausstattung_panorama,       'Panoramadach'],
+    [a.ausstattung_ahk,            'Anhängerkupplung'],
+    [a.ausstattung_standhz,        'Standheizung'],
+    [a.ausstattung_lenkradheizung, 'Lenkradheizung'],
+    [a.ausstattung_eph_vorne,      'EPH vorne'],
+    [a.ausstattung_eph_hinten,     'EPH hinten'],
+    [a.ausstattung_kamera_hinten,  'Rückfahrkamera'],
+    [a.ausstattung_kamera_360,     '360°-Kamera'],
+    [a.reifen_sommer,              'Sommerreifen'+( a.reifen_sommer_profil?' ('+a.reifen_sommer_profil+' mm Profil)':'')],
+    [a.reifen_winter,              'Winterreifen'+(  a.reifen_winter_profil?'  ('+a.reifen_winter_profil+' mm Profil)':'')],
+  ].filter(x=>x[0]).map(x=>x[1]);
+
+  const mangelRows = MN_ROWS.map(r => {
+    const desc = a['mn_'+r.key]||'';
+    const kost = parseFloat(a['mn_'+r.key+'_kosten'])||0;
+    return `<tr>
+      <td style="padding:5pt 6pt;border-bottom:1px solid #eee;font-size:9.5pt;">${r.label}</td>
+      <td style="padding:5pt 6pt;border-bottom:1px solid #eee;font-size:9.5pt;">${desc||'–'}</td>
+      <td style="padding:5pt 6pt;border-bottom:1px solid #eee;font-size:9.5pt;text-align:right;">${kost>0?formatEuro_plain(kost):'–'}</td>
+    </tr>`;
+  }).join('');
+
+  const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">
+<title>Zustandsbericht – ${fzBez}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,sans-serif;font-size:11pt;color:#111;background:white;padding:18mm 20mm;line-height:1.5}
+  .hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #003366;padding-bottom:10pt;margin-bottom:14pt}
+  .brand{font-size:20pt;font-weight:700;color:#003366;font-family:Georgia,serif}
+  .sub{font-size:8pt;color:#888;text-transform:uppercase;letter-spacing:1.5px;margin-top:2pt}
+  .adr{font-size:8.5pt;color:#444;margin-top:5pt;line-height:1.6}
+  .doc-info{text-align:right;font-size:9pt;color:#555;line-height:1.8}
+  h1{font-size:16pt;font-weight:700;color:#003366;font-family:Georgia,serif;text-align:center;margin:12pt 0 4pt}
+  .subtitle{text-align:center;font-size:9pt;color:#888;margin-bottom:16pt;text-transform:uppercase;letter-spacing:1px}
+  .sec{margin-bottom:14pt}
+  .sec-title{font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#003366;border-bottom:1.5px solid #c8982a;padding-bottom:3pt;margin-bottom:8pt}
+  table.daten{width:100%;border-collapse:collapse;font-size:9.5pt}
+  table.daten td{padding:4pt 6pt;border-bottom:1px solid #eee;vertical-align:top}
+  table.daten td:first-child{color:#555;font-weight:600;width:42%;white-space:nowrap}
+  table.mn{width:100%;border-collapse:collapse}
+  table.mn th{background:#003366;color:white;padding:7pt 6pt;font-size:9pt;text-align:left;font-weight:600;text-transform:uppercase;letter-spacing:0.5px}
+  table.mn th:last-child{text-align:right;width:110pt}
+  .total-row td{background:#003366;color:white;font-weight:700;padding:8pt 6pt;font-size:10pt}
+  .total-row td:last-child{text-align:right}
+  .preis-box{background:#003366;color:white;border-radius:6pt;padding:12pt 16pt;margin-top:14pt;display:flex;justify-content:space-between;align-items:center}
+  .preis-label{font-size:10pt;opacity:0.75}
+  .preis-value{font-size:22pt;font-weight:700;color:#c8982a;font-family:Georgia,serif}
+  .footer{margin-top:20pt;border-top:1px solid #ddd;padding-top:6pt;font-size:7.5pt;color:#aaa;text-align:center;line-height:1.7}
+  @media print{body{padding:10mm 14mm}@page{margin:10mm}}
+</style></head><body>
+
+<div class="hd">
+  <div>
+    <div class="brand">Autohaus Stieber</div>
+    <div class="sub">Mehrmarken-Center &amp; Bosch Car Service</div>
+    <div class="adr">Autohaus Stieber GmbH · Emerholzweg 5 · 70439 Stuttgart-Stammheim<br>Tel. 0711 80 60 94 - 0 · service@autohaus-stieber.de</div>
+  </div>
+  <div class="doc-info">
+    <strong style="color:#003366;font-size:11pt;">ZUSTANDSBERICHT</strong><br>
+    Datum: ${heute}${a.bearbeiter_name?'<br>Bearbeiter: '+a.bearbeiter_name:''}
+  </div>
+</div>
+
+<h1>Fahrzeug-Zustandsbericht</h1>
+<div class="subtitle">Interne Ankaufsbewertung – Autohaus Stieber GmbH</div>
+
+<div class="sec">
+  <div class="sec-title">Fahrzeugdaten</div>
+  <table class="daten">
+    <tr><td>Fahrzeug:</td><td><strong>${fzBez||'–'}</strong></td></tr>
+    ${a.fz_kennzeichen?`<tr><td>Kennzeichen:</td><td>${a.fz_kennzeichen}</td></tr>`:''}
+    ${a.fz_fahrgestellnr?`<tr><td>Fahrgestellnr. (FIN):</td><td>${a.fz_fahrgestellnr}</td></tr>`:''}
+    ${a.fz_erstzulassung?`<tr><td>Erstzulassung:</td><td>${formatDateDE(a.fz_erstzulassung)}</td></tr>`:''}
+    ${a.fz_km_stand?`<tr><td>Kilometerstand:</td><td>${a.fz_km_stand.toLocaleString('de-DE')} km</td></tr>`:''}
+    ${a.fz_kraftstoff?`<tr><td>Kraftstoff:</td><td>${a.fz_kraftstoff}</td></tr>`:''}
+    ${a.fz_getriebe?`<tr><td>Getriebe:</td><td>${a.fz_getriebe}</td></tr>`:''}
+    ${a.fz_antrieb?`<tr><td>Antrieb:</td><td>${a.fz_antrieb}</td></tr>`:''}
+    ${a.fz_leistung_kw?`<tr><td>Leistung:</td><td>${a.fz_leistung_kw} PS</td></tr>`:''}
+    ${a.fz_farbe?`<tr><td>Farbe:</td><td>${a.fz_farbe}</td></tr>`:''}
+    ${a.fz_halteranzahl?`<tr><td>Vorbesitzer:</td><td>${a.fz_halteranzahl}</td></tr>`:''}
+    ${a.fz_hu_datum?`<tr><td>HU gültig bis:</td><td>${a.fz_hu_datum}</td></tr>`:''}
+    ${a.fz_anzahl_schluessel!=null?`<tr><td>Anzahl Schlüssel:</td><td>${a.fz_anzahl_schluessel}</td></tr>`:''}
+    ${ausstItems.length?`<tr><td>Ausstattung:</td><td>${ausstItems.join(' · ')}</td></tr>`:''}
+  </table>
+</div>
+
+<div class="sec">
+  <div class="sec-title">Mängel &amp; Instandsetzungskosten</div>
+  <table class="mn">
+    <thead><tr><th>Baugruppe</th><th>Mängelbeschreibung</th><th style="text-align:right;">Kosten (€)</th></tr></thead>
+    <tbody>${mangelRows}</tbody>
+    <tfoot><tr class="total-row"><td colspan="2">Gesamt Instandsetzungskosten</td><td style="text-align:right;">${formatEuro_plain(totalKosten)}</td></tr></tfoot>
+  </table>
+</div>
+
+${a.ankaufspreis?`
+<div class="preis-box">
+  <div class="preis-label">Vereinbarter Ankaufspreis</div>
+  <div class="preis-value">${formatEuro_plain(a.ankaufspreis)}</div>
+</div>`:''}
+
+<div class="footer">
+  Autohaus Stieber GmbH · Emerholzweg 5 · 70439 Stuttgart-Stammheim · Tel. 0711 80 60 94-0 · service@autohaus-stieber.de<br>
+  Dieser Zustandsbericht ist ein internes Dokument zur Ankaufsdokumentation.
+</div>
+<script>window.onload=function(){window.print()}<\/script>
+</body></html>`;
+
+  const w = window.open('','_blank','width=900,height=750');
+  if (!w) { showToast('Bitte Popups erlauben!','error'); return; }
+  w.document.write(html); w.document.close();
+}
+
+// ===== KAUFVERTRAG DRUCKEN =====
+function printKaufvertrag(id) {
+  const a = allAnkauefe.find(x=>x.id===id);
+  if (!a) return;
+  const heute = new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+  const fzBez = [a.fz_hersteller,a.fz_modell,a.fz_typ].filter(Boolean).join(' ');
+  const vkName = `${a.vk_vorname||''} ${a.vk_nachname||''}`.trim();
+  const vkAdresse = [a.vk_strasse, a.vk_plz&&a.vk_ort?`${a.vk_plz} ${a.vk_ort}`:''].filter(Boolean).join(', ');
+  const totalKosten = MN_ROWS.reduce((s,r)=>s+(parseFloat(a['mn_'+r.key+'_kosten'])||0),0);
+
+  const ausstListe = [
+    [a.ausstattung_navi,           'Navigation (Werks)'],
+    [a.ausstattung_soundsystem,    'Apple CarPlay / Android Auto'],
+    [a.ausstattung_klimaautomatik, 'Klimaautomatik'],
+    [a.ausstattung_sitzheizung,    'Sitzheizung vorne'],
+    [a.ausstattung_shz_hinten,     'Sitzheizung hinten'],
+    [a.ausstattung_leder,          'Lederausstattung'],
+    [a.ausstattung_panorama,       'Panoramadach'],
+    [a.ausstattung_ahk,            'Anhängerkupplung'],
+    [a.ausstattung_standhz,        'Standheizung'],
+    [a.ausstattung_lenkradheizung, 'Lenkradheizung'],
+    [a.ausstattung_eph_vorne,      'EPH vorne'],
+    [a.ausstattung_eph_hinten,     'EPH hinten'],
+    [a.ausstattung_kamera_hinten,  'Rückfahrkamera'],
+    [a.ausstattung_kamera_360,     '360°-Kamera'],
+    [a.reifen_sommer,              'Sommerreifen'+(a.reifen_sommer_profil?' ('+a.reifen_sommer_profil+' mm)':'')],
+    [a.reifen_winter,              'Winterreifen'+(a.reifen_winter_profil?' ('+a.reifen_winter_profil+' mm)':'')],
+  ].filter(x=>x[0]).map(x=>x[1]);
+
+  const zusListe = [
+    [a.zusicherung_unfallfrei,     'Fahrzeug ist unfallfrei'],
+    [a.zusicherung_kein_hagel,     'Kein Hagelschaden'],
+    [a.zusicherung_kein_nachlack,  'Nicht nachlackiert'],
+    [a.zusicherung_kein_mietwagen, 'Kein ehemaliges Mietfahrzeug'],
+    [a.zusicherung_kein_eu_import, 'Kein EU-Import'],
+  ].filter(x=>x[0]).map(x=>x[1]);
+
+  // Bekannte Mängel mit Kosten für Kaufvertrag
+  const bekannteMaengel = MN_ROWS.filter(r=>a['mn_'+r.key]||parseFloat(a['mn_'+r.key+'_kosten'])>0)
+    .map(r=>`<tr><td style="padding:4pt 6pt;border-bottom:1px solid #eee;font-size:9pt;">${r.label}</td><td style="padding:4pt 6pt;border-bottom:1px solid #eee;font-size:9pt;">${a['mn_'+r.key]||'–'}</td><td style="padding:4pt 6pt;border-bottom:1px solid #eee;font-size:9pt;text-align:right;">${a['mn_'+r.key+'_kosten']>0?formatEuro_plain(a['mn_'+r.key+'_kosten']):'–'}</td></tr>`).join('');
+
+  const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">
+<title>Kaufvertrag – ${fzBez}</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:Arial,Helvetica,sans-serif;font-size:10.5pt;color:#111;background:white;padding:20mm 20mm;line-height:1.5}
+  .hd{display:flex;justify-content:space-between;align-items:flex-start;border-bottom:3px solid #003366;padding-bottom:10pt;margin-bottom:14pt}
+  .brand{font-size:21pt;font-weight:700;color:#003366;font-family:Georgia,serif}
+  .sub{font-size:8pt;color:#888;text-transform:uppercase;letter-spacing:1.5px;margin-top:2pt}
+  .adr{font-size:8.5pt;color:#444;margin-top:5pt;line-height:1.6}
+  .doc-info{text-align:right;font-size:9pt;color:#555;line-height:1.8}
+  .kv-nr{font-size:11pt;font-weight:700;color:#003366}
+  h1{font-size:16pt;font-weight:700;color:#003366;font-family:Georgia,serif;text-align:center;margin:14pt 0 4pt}
+  .subtitle{text-align:center;font-size:9pt;color:#888;margin-bottom:16pt;text-transform:uppercase;letter-spacing:1px}
+  .sec{margin-bottom:13pt;page-break-inside:avoid}
+  .sec-title{font-size:10pt;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#003366;border-bottom:1.5px solid #c8982a;padding-bottom:3pt;margin-bottom:8pt}
+  .zwei{display:grid;grid-template-columns:1fr 1fr;gap:18pt}
+  table.daten{width:100%;border-collapse:collapse;font-size:9.5pt}
+  table.daten td{padding:4pt 6pt;border-bottom:1px solid #eee;vertical-align:top}
+  table.daten td:first-child{color:#555;font-weight:600;width:44%;white-space:nowrap}
+  .preis-box{background:#f0f5ff;border:2px solid #003366;border-radius:6pt;padding:10pt 14pt;margin:10pt 0}
+  .preis-label{font-size:8.5pt;color:#555;margin-bottom:2pt}
+  .preis-wert{font-size:22pt;font-weight:700;color:#003366;font-family:Georgia,serif}
+  .preis-text{font-size:8.5pt;color:#888;margin-top:3pt}
+  ul.checks{list-style:none;padding:0}
+  ul.checks li{padding:2.5pt 0;font-size:9.5pt}
+  ul.checks li::before{content:'✓  ';color:#1e6e42;font-weight:700}
+  .box-warn{background:#fffbf0;border-left:3px solid #c8982a;padding:8pt 12pt;font-size:9pt;color:#333;line-height:1.6;margin-top:8pt}
+  .box-info{background:#f0f5ff;border-left:3px solid #003366;padding:8pt 12pt;font-size:9pt;color:#333;line-height:1.6;margin-top:8pt}
+  .unt{margin-top:22pt;display:grid;grid-template-columns:1fr 1fr;gap:36pt;page-break-inside:avoid}
+  .unt-block{border-top:1.5px solid #333;padding-top:5pt;font-size:8.5pt;color:#555;line-height:1.6}
+  .unt-linie{height:32pt;border-bottom:1px dashed #bbb;margin-bottom:5pt}
+  .footer{margin-top:22pt;border-top:1px solid #ddd;padding-top:7pt;font-size:7.5pt;color:#aaa;text-align:center;line-height:1.7}
+  .page-break{page-break-before:always;padding-top:16pt}
+  @media print{body{padding:12mm 14mm}@page{margin:12mm}}
+  table.mn2 th{background:#003366;color:white;padding:6pt;font-size:8.5pt;text-align:left}
+  table.mn2 th:last-child{text-align:right}
+  table.mn2 td{padding:4pt 6pt;border-bottom:1px solid #eee;font-size:9pt;vertical-align:top}
+  table.mn2 td:last-child{text-align:right;white-space:nowrap}
+</style></head><body>
+
+<!-- SEITE 1: KAUFVERTRAG -->
+<div class="hd">
+  <div>
+    <div class="brand">Autohaus Stieber</div>
+    <div class="sub">Mehrmarken-Center &amp; Bosch Car Service</div>
+    <div class="adr">Autohaus Stieber GmbH · Emerholzweg 5 · 70439 Stuttgart-Stammheim<br>Tel. 0711 80 60 94 - 0 · service@autohaus-stieber.de</div>
+  </div>
+  <div class="doc-info">
+    <div class="kv-nr">KAUFVERTRAG</div>
+    <div>Datum: ${heute}</div>
+    ${a.bearbeiter_name?`<div>Bearbeiter: ${a.bearbeiter_name}</div>`:''}
+  </div>
+</div>
+
+<h1>Kaufvertrag für ein gebrauchtes Kraftfahrzeug</h1>
+<div class="subtitle">Privatkauf – Privat an Gewerbetreibenden</div>
+
+<!-- § 1 Vertragsparteien -->
+<div class="sec">
+  <div class="sec-title">§ 1 · Vertragsparteien</div>
+  <div class="zwei">
+    <div>
+      <strong style="font-size:8.5pt;text-transform:uppercase;color:#555;">Verkäufer (Privat)</strong>
+      <table class="daten" style="margin-top:6pt">
+        <tr><td>Name:</td><td>${vkName||'–'}</td></tr>
+        <tr><td>Adresse:</td><td>${vkAdresse||'–'}</td></tr>
+        ${a.vk_telefon?`<tr><td>Telefon:</td><td>${a.vk_telefon}</td></tr>`:''}
+        ${a.vk_email?`<tr><td>E-Mail:</td><td>${a.vk_email}</td></tr>`:''}
+      </table>
+    </div>
+    <div>
+      <strong style="font-size:8.5pt;text-transform:uppercase;color:#555;">Käufer (Gewerbetreibender)</strong>
+      <table class="daten" style="margin-top:6pt">
+        <tr><td>Firma:</td><td>Autohaus Stieber GmbH</td></tr>
+        <tr><td>Adresse:</td><td>Emerholzweg 5, 70439 Stuttgart-Stammheim</td></tr>
+        <tr><td>Vertreten durch:</td><td>Oliver Stieber</td></tr>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- § 2 Kaufgegenstand -->
+<div class="sec">
+  <div class="sec-title">§ 2 · Kaufgegenstand – Fahrzeug</div>
+  <table class="daten">
+    <tr><td>Fahrzeug:</td><td><strong>${fzBez||'–'}</strong></td></tr>
+    ${a.fz_kennzeichen?`<tr><td>Kennzeichen:</td><td>${a.fz_kennzeichen}</td></tr>`:''}
+    ${a.fz_fahrgestellnr?`<tr><td>Fahrgestellnummer (FIN):</td><td>${a.fz_fahrgestellnr}</td></tr>`:''}
+    ${a.fz_erstzulassung?`<tr><td>Erstzulassung:</td><td>${formatDateDE(a.fz_erstzulassung)}</td></tr>`:''}
+    ${a.fz_km_stand?`<tr><td>Kilometerstand:</td><td>${a.fz_km_stand.toLocaleString('de-DE')} km (lt. Tacho)</td></tr>`:''}
+    ${a.fz_kraftstoff?`<tr><td>Kraftstoff:</td><td>${a.fz_kraftstoff}</td></tr>`:''}
+    ${a.fz_getriebe?`<tr><td>Getriebe:</td><td>${a.fz_getriebe}</td></tr>`:''}
+    ${a.fz_antrieb?`<tr><td>Antrieb:</td><td>${a.fz_antrieb}</td></tr>`:''}
+    ${a.fz_leistung_kw?`<tr><td>Leistung:</td><td>${a.fz_leistung_kw} PS</td></tr>`:''}
+    ${a.fz_farbe?`<tr><td>Farbe:</td><td>${a.fz_farbe}</td></tr>`:''}
+    ${a.fz_halteranzahl?`<tr><td>Anzahl Vorhalter:</td><td>${a.fz_halteranzahl}</td></tr>`:''}
+    ${a.fz_hu_datum?`<tr><td>HU/AU gültig bis:</td><td>${a.fz_hu_datum}</td></tr>`:''}
+    ${a.fz_anzahl_schluessel!=null?`<tr><td>Anzahl Schlüssel:</td><td>${a.fz_anzahl_schluessel}</td></tr>`:''}
+    ${ausstListe.length?`<tr><td>Ausstattung:</td><td>${ausstListe.join(' · ')}</td></tr>`:''}
+  </table>
+</div>
+
+<!-- § 3 Kaufpreis -->
+<div class="sec">
+  <div class="sec-title">§ 3 · Kaufpreis und Zahlung</div>
+  <div class="preis-box">
+    <div class="preis-label">Vereinbarter Kaufpreis (brutto, inkl. gesetzl. MwSt.)</div>
+    <div class="preis-wert">${a.ankaufspreis?formatEuro_plain(a.ankaufspreis):'– €'}</div>
+    <div class="preis-text">Zahlungsart: &nbsp;☐ Barzahlung &nbsp;&nbsp; ☐ Banküberweisung</div>
+  </div>
+  <p style="font-size:9pt;color:#555;margin-top:6pt;">Der Kaufpreis ist fällig und zahlbar bei Übergabe des Fahrzeugs. Mit vollständiger Zahlung gehen Besitz, Nutzen und Gefahr auf den Käufer über.</p>
+</div>
+
+<!-- § 4 Zusicherungen -->
+${zusListe.length||a.kd_km_faellig||a.kd_datum_faellig||a.kd_alle_durchgefuehrt?`
+<div class="sec">
+  <div class="sec-title">§ 4 · Zusicherungen des Verkäufers</div>
+  ${zusListe.length?`<p style="font-size:9pt;margin-bottom:6pt;">Der Verkäufer versichert ausdrücklich:</p>
+  <ul class="checks">${zusListe.map(z=>`<li>${z}</li>`).join('')}</ul>`:''}
+  ${a.kd_km_faellig||a.kd_datum_faellig||a.kd_alle_durchgefuehrt?`
+  <table class="daten" style="margin-top:8pt">
+    ${a.kd_alle_durchgefuehrt?`<tr><td>Kundendiensthistorie:</td><td>Alle Kundendienste lückenlos nachgewiesen</td></tr>`:''}
+    ${a.kd_km_faellig?`<tr><td>Nächster KD fällig bei:</td><td>${a.kd_km_faellig.toLocaleString('de-DE')} km</td></tr>`:''}
+    ${a.kd_datum_faellig?`<tr><td>Nächster KD fällig am:</td><td>${formatDateDE(a.kd_datum_faellig)}</td></tr>`:''}
+  </table>`:''}
+</div>`:''}
+
+<!-- § 5 Bekannte Mängel -->
+${bekannteMaengel?`
+<div class="sec">
+  <div class="sec-title">§ 5 · Bekannte Mängel und Zustand</div>
+  <p style="font-size:9pt;margin-bottom:7pt;">Folgende Mängel sind dem Verkäufer bekannt und werden bei der Kaufpreisfindung berücksichtigt:</p>
+  <table class="mn2" style="width:100%;border-collapse:collapse;">
+    <thead><tr><th style="width:25%">Baugruppe</th><th>Beschreibung</th><th style="width:100pt;text-align:right;">Kosten (€)</th></tr></thead>
+    <tbody>${bekannteMaengel}</tbody>
+    ${totalKosten>0?`<tfoot><tr><td colspan="2" style="padding:6pt;font-weight:700;background:#f0f5ff;border-top:1.5px solid #003366;">Gesamt Instandsetzungskosten</td><td style="padding:6pt;font-weight:700;text-align:right;background:#f0f5ff;border-top:1.5px solid #003366;">${formatEuro_plain(totalKosten)}</td></tr></tfoot>`:''}
+  </table>
+</div>`:''}
+
+<!-- § 6 Gewährleistung -->
+<div class="sec">
+  <div class="sec-title">§ 6 · Gewährleistung und Haftungsausschluss</div>
+  <div class="box-warn">
+    Das Fahrzeug wird als gebrauchtes Kraftfahrzeug <strong>unter Ausschluss jeglicher Gewährleistung</strong> verkauft,
+    soweit nicht durch zwingende gesetzliche Vorschriften eine Haftung vorgesehen ist. Arglistig verschwiegene Mängel
+    und zugesicherte Eigenschaften sind von diesem Ausschluss ausgenommen.<br><br>
+    Der Käufer hat das Fahrzeug besichtigt und den technischen Zustand geprüft. Das Fahrzeug wird im gegenwärtigen
+    Zustand verkauft und übernommen.<br><br>
+    <strong>Klausel zu unbekannten Mängeln:</strong> Werden bei der Fahrzeugübergabe weitere Mängel festgestellt,
+    die zum Zeitpunkt der Vertragsunterzeichnung nicht bekannt waren und im vorliegenden Vertrag nicht dokumentiert sind,
+    werden die anfallenden Instandsetzungskosten vom vereinbarten Kaufpreis in Abzug gebracht.
+    Der Verkäufer erkennt dieses Verfahren mit seiner Unterschrift ausdrücklich an.
+  </div>
+</div>
+
+<!-- § 7 Sondervereinbarungen -->
+<div class="sec">
+  <div class="sec-title">§ 7 · Sondervereinbarungen</div>
+  <div style="min-height:36pt;border:1px dashed #ccc;border-radius:4pt;padding:8pt;font-size:9pt;color:#aaa;">
+    ______________________________________________________________________________________<br>
+    ______________________________________________________________________________________
+  </div>
+</div>
+
+<!-- Unterschriften Seite 1 -->
+<div class="unt">
+  <div class="unt-block">
+    <div class="unt-linie"></div>
+    <strong>${vkName||'Verkäufer'}</strong><br>
+    Ort, Datum &amp; Unterschrift Verkäufer<br>
+    <span style="font-size:7.5pt;">– Privat –</span>
+  </div>
+  <div class="unt-block">
+    <div class="unt-linie"></div>
+    <strong>Autohaus Stieber GmbH</strong><br>
+    Ort, Datum &amp; Unterschrift Käufer<br>
+    <span style="font-size:7.5pt;">– Gewerbetreibender –</span>
+  </div>
+</div>
+
+<div class="footer">
+  Autohaus Stieber GmbH · Emerholzweg 5 · 70439 Stuttgart-Stammheim · Tel. 0711 80 60 94 - 0 · service@autohaus-stieber.de<br>
+  Kaufvertrag Seite 1 von 2 · Erstellt am ${heute}
+</div>
+
+<!-- ============================================================ -->
+<!-- SEITE 2: FAHRZEUGÜBERGABE -->
+<!-- ============================================================ -->
+<div class="page-break">
+  <div class="hd">
+    <div>
+      <div class="brand">Autohaus Stieber</div>
+      <div class="sub">Mehrmarken-Center &amp; Bosch Car Service</div>
+    </div>
+    <div class="doc-info">
+      <div class="kv-nr">FAHRZEUGÜBERGABE</div>
+      <div>Datum: ${heute}</div>
+    </div>
+  </div>
+
+  <h1 style="margin-bottom:6pt;">Fahrzeugübergabe-Protokoll</h1>
+  <div class="subtitle">${fzBez} · ${a.fz_kennzeichen||''}</div>
+
+  <div class="sec">
+    <div class="sec-title">Übergabe durch Verkäufer an Käufer</div>
+    <table class="daten">
+      <tr><td>Übergabedatum:</td><td>___________________________</td></tr>
+      <tr><td>Übergabezeit:</td><td>_______________ Uhr</td></tr>
+      <tr><td>Übergabeort:</td><td>Emerholzweg 5, 70439 Stuttgart-Stammheim</td></tr>
+      <tr><td>KM-Stand bei Übergabe:</td><td>___________________________ km</td></tr>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Verkäufer übergibt an Käufer</div>
+    <table class="daten">
+      <tr><td>Zulassungsbescheinigung Teil I (Fahrzeugschein):</td><td>☐ übergeben &nbsp; ☐ nicht vorhanden</td></tr>
+      <tr><td>Zulassungsbescheinigung Teil II (Fahrzeugbrief):</td><td>☐ übergeben &nbsp; ☐ nicht vorhanden</td></tr>
+      <tr><td>Fahrzeugschlüssel (Anzahl):</td><td>${a.fz_anzahl_schluessel!=null?a.fz_anzahl_schluessel:'___'} Stück</td></tr>
+      <tr><td>HU-Bescheinigung:</td><td>☐ übergeben &nbsp; ☐ nicht vorhanden</td></tr>
+      <tr><td>Serviceheft / Bordbuch:</td><td>☐ übergeben &nbsp; ☐ nicht vorhanden</td></tr>
+      <tr><td>Amtliches Kennzeichen:</td><td>☐ verbleibt am Fahrzeug &nbsp; ☐ wird abgemeldet</td></tr>
+    </table>
+  </div>
+
+  <div class="sec">
+    <div class="sec-title">Käufer bestätigt Zahlung des Kaufpreises</div>
+    <table class="daten">
+      <tr><td>Kaufpreis:</td><td><strong>${a.ankaufspreis?formatEuro_plain(a.ankaufspreis):'– €'}</strong></td></tr>
+      <tr><td>Zahlungsart:</td><td>☐ Barzahlung &nbsp;&nbsp; ☐ Banküberweisung</td></tr>
+      <tr><td>Betrag erhalten am:</td><td>___________________________</td></tr>
+    </table>
+    <div class="box-info" style="margin-top:10pt;">
+      Der Verkäufer bestätigt den vollständigen Erhalt des Kaufpreises. Mit Unterzeichnung dieses
+      Übergabeprotokolls gilt das Fahrzeug als ordnungsgemäß übergeben und die Kaufabwicklung als abgeschlossen.
+    </div>
+  </div>
+
+  <div class="unt" style="margin-top:32pt;">
+    <div class="unt-block">
+      <div class="unt-linie"></div>
+      <strong>${vkName||'Verkäufer'}</strong><br>
+      Ort, Datum &amp; Unterschrift Verkäufer
+    </div>
+    <div class="unt-block">
+      <div class="unt-linie"></div>
+      <strong>Autohaus Stieber GmbH</strong><br>
+      Ort, Datum &amp; Unterschrift Käufer
+    </div>
+  </div>
+
+  <div class="footer">
+    Autohaus Stieber GmbH · Emerholzweg 5 · 70439 Stuttgart-Stammheim · Tel. 0711 80 60 94 - 0 · service@autohaus-stieber.de<br>
+    Kaufvertrag Seite 2 von 2 – Fahrzeugübergabe-Protokoll
+  </div>
+</div>
+
+<script>window.onload=function(){window.print()}<\/script>
+</body></html>`;
+
+  const w = window.open('','_blank','width=960,height=800');
+  if (!w) { showToast('Bitte Popups erlauben!','error'); return; }
+  w.document.write(html); w.document.close();
+}
+
+function formatEuro_plain(n) {
+  return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(n);
+}
+
+// ===== HELPERS =====
+function v(id)  { return document.getElementById(id)?.value?.trim()||''; }
+function cb(id) { return document.getElementById(id)?.checked||false; }
+
+function formatDate(iso) {
+  return new Date(iso).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+
+function formatDateDE(isoStr) {
+  if (!isoStr) return '–';
+  const p = isoStr.split('-');
+  if (p.length>=3) return `${p[2]}.${p[1]}.${p[0]}`;
+  if (p.length===2) return `${p[1]}.${p[0]}`;
+  return isoStr;
+}
+
+function formatEuro(n) {
+  return new Intl.NumberFormat('de-DE',{style:'currency',currency:'EUR'}).format(n);
+}
+
+function statusLabel(s) {
+  return {neu:'Neu',bewertet:'Bewertet',vertrag_erstellt:'Vertrag',abgeschlossen:'Abgeschlossen',abgelehnt:'Abgelehnt'}[s]||s;
+}
+
+function showToast(msg,type='info') {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+function resetForm() {
+  editingId=null;
+  document.querySelectorAll('#view-new input, #view-new select, #view-new textarea').forEach(el=>{
+    if (el.type==='checkbox') el.checked=false; else el.value='';
+  });
+  document.getElementById('status').value='neu';
+  document.getElementById('save-btn').textContent='💾 Ankauf speichern';
+  document.getElementById('mn_gesamt_display').textContent='0,00 €';
+  document.getElementById('profil-sommer-wrap').classList.remove('show');
+  document.getElementById('profil-winter-wrap').classList.remove('show');
+}
+
+// ===== INIT =====
+checkSession();
+</script>
+</body>
+</html>
