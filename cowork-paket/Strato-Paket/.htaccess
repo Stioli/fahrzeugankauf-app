@@ -1,0 +1,39 @@
+# =====================================================================
+# .htaccess fuer Autohaus Stieber - Fahrzeugankauf-App
+# Schuetzt den Ordner /ankauf/ mit Passwort
+# =====================================================================
+
+# --- Passwortschutz aktivieren ---
+AuthType Basic
+AuthName "Autohaus Stieber - Fahrzeugankauf (Bitte einloggen)"
+AuthUserFile /HIER_ABSOLUTER_PFAD_EINSETZEN/.htpasswd
+Require valid-user
+
+# --- Wichtige Sicherheits-Einstellungen ---
+
+# Verhindert dass die .htpasswd-Datei direkt heruntergeladen werden kann
+<Files ".ht*">
+  Require all denied
+</Files>
+
+# Verhindert dass HTML-Dateien als Verzeichnis-Listing angezeigt werden
+Options -Indexes
+
+# Direkter Aufruf von Ankauf.html als Standard-Seite
+DirectoryIndex Ankauf.html index.html
+
+# --- Cache-Steuerung ---
+# App-Datei darf gecacht werden, aber nur kurz (5 Minuten)
+# So sehen Mitarbeiter Updates relativ schnell
+<IfModule mod_headers.c>
+  <FilesMatch "\.(html|css|js)$">
+    Header set Cache-Control "public, max-age=300, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# --- HTTPS erzwingen (wenn vom Strato-Tarif unterstuetzt) ---
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{HTTPS} off
+  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>

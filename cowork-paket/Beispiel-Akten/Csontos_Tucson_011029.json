@@ -1,0 +1,146 @@
+{
+  "akten_id": "Csontos_Tucson_011029",
+  "status": "UEBERNOMMEN",
+  "erstellt_am": "2026-05-08T12:50:56",
+  "geaendert_am": "2026-05-08T12:50:58",
+  "stufe1_abgeschlossen_am": "2026-05-08T12:50:56",
+  "stufe2_abgeschlossen_am": "2026-05-08T12:50:56",
+  "stufe3_abgeschlossen_am": "2026-05-08T12:50:57",
+  "stufe4_abgeschlossen_am": "2026-05-08T12:50:58",
+  "verkaeufer": {
+    "name": "Aleksander Csontos",
+    "strasse": "Hauptstraße 57",
+    "plz_ort": "79341 Kenzingen",
+    "telefon": "",
+    "email": "",
+    "kunden_nr": "3990023"
+  },
+  "fahrzeug": {
+    "hersteller": "Hyundai",
+    "modell": "Tucson",
+    "variante": "",
+    "aufbau": "SUV",
+    "farbe": "Grau",
+    "fin": "TMAJE81BGMJ011029",
+    "kennzeichen": "EM NA2004",
+    "erstzulassung": "30.04.2021",
+    "km_stand": "60.773",
+    "hubraum_ccm": "1.598",
+    "leistung_kw": "148",
+    "leistung_ps": "201",
+    "kraftstoff": "Hybrid",
+    "getriebe": "Automatik",
+    "antrieb": "4WD",
+    "halteranzahl": "2",
+    "schadstoffklasse": "EURO 6 (WLTP)"
+  },
+  "extras": {
+    "panoramadach": false,
+    "schiebedach": false,
+    "lederausstattung": "Stoff",
+    "sitzheizung_vorne": true,
+    "sitzheizung_hinten": false,
+    "sitzbelueftung": false,
+    "elektrische_sitze": "Nein",
+    "sitz_memory": false,
+    "klimaautomatik": "2",
+    "lenkradheizung": false,
+    "standheizung": "Nein",
+    "navigation": "Werks",
+    "apple_carplay_android_auto": true,
+    "dab_radio": true,
+    "bluetooth": true,
+    "soundsystem": "",
+    "licht_typ": "LED",
+    "head_up_display": false,
+    "rueckfahrkamera": true,
+    "kamera_360": false,
+    "eph_vorne": true,
+    "eph_hinten": true,
+    "park_assistent": false,
+    "adaptive_cruise": true,
+    "spurhalteassistent": true,
+    "keyless_go": true,
+    "elektr_heckklappe": "Ja",
+    "ahk": "Nein",
+    "alufelgen_sommer": true,
+    "alufelgen_zoll": "19",
+    "winterreifen_vorhanden": false,
+    "winterreifen_art": "",
+    "werksgarantie_aktiv": false,
+    "werksgarantie_bis": "",
+    "extras_freitext": ""
+  },
+  "werkstatt": {
+    "durchgesehen_von": "Werkstatt-Meister",
+    "durchgesehen_am": "08.05.2026",
+    "hu_faellig": "05/2026",
+    "kd_faellig": "05/2026",
+    "alle_kd_durchgefuehrt": true,
+    "unfallfrei": true,
+    "hagelschaden": false,
+    "nachlackiert": false,
+    "ex_mietwagen": false,
+    "eu_fahrzeug": false,
+    "gebrauchsspuren": true
+  },
+  "maengel": [
+    {
+      "pos": 1,
+      "baugruppe": "HU/TÜV",
+      "beschreibung": "HU und Inspektion 05/2026 fällig"
+    },
+    {
+      "pos": 2,
+      "baugruppe": "Fahrwerk",
+      "beschreibung": "Felge vorne rechts beschädigt – Austausch erforderlich"
+    },
+    {
+      "pos": 3,
+      "baugruppe": "Motor",
+      "beschreibung": "Motorölverlust Ventildeckel – Dichtung wechseln"
+    },
+    {
+      "pos": 4,
+      "baugruppe": "Karosserie / Lack",
+      "beschreibung": "Türkanten abgeschlagen"
+    },
+    {
+      "pos": 5,
+      "baugruppe": "Innenraum",
+      "beschreibung": "Fahrersitzpolster abgenutzt – Aufpolsterung erforderlich"
+    },
+    {
+      "pos": 6,
+      "baugruppe": "Aufbereitung",
+      "beschreibung": "Fahrzeugaufbereitung innen/außen für Wiederverkauf"
+    }
+  ],
+  "positive_notizen": "Alle Kundendienste durchgeführt · Reifen rundum i.O. · Bremsanlage i.O. · Elektronik i.O.",
+  "kalkulation": {
+    "kalkuliert_von": "Oliver Stieber",
+    "kalkuliert_am": "08.05.2026",
+    "aufwendungen_gesamt": 0.0,
+    "haendlereinkaufspreis": 16500.0,
+    "vertrags_nr": "",
+    "bewertungs_nr": ""
+  },
+  "uebergabe": {
+    "uebergabe_am": "15.05.2026",
+    "uebergabe_durch": "Oliver Stieber",
+    "km_stand_uebergabe": "60.890",
+    "km_differenz": "",
+    "tankstand": "1/2",
+    "anzahl_schluessel": "2",
+    "bordmappe_vorhanden": true,
+    "serviceheft_vorhanden": true,
+    "kfz_schein_vorhanden": true,
+    "kfz_brief_vorhanden": true,
+    "winterreifen_mitgebracht": false,
+    "winterreifen_zustand": "",
+    "neue_schaeden": "",
+    "allgemeiner_zustand": "i.O.",
+    "fotos_hinzugefuegt": false,
+    "bemerkungen": ""
+  }
+}
