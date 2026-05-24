@@ -132,7 +132,7 @@
   /* REIFEN ZEILE MIT PROFILTIEFE */
   .reifen-row { display:flex; align-items:center; gap:10px; padding:11px 14px; border-radius:12px; border:1.5px solid var(--border); background:white; flex-wrap:wrap; transition:border-color 0.15s; }
   .reifen-row:hover { border-color:var(--primary); background:rgba(26,109,212,0.04); }
-  .reifen-row input[type="checkbox"] { width:17px; height:17px; cursor:pointer; accent-color:var(--primary); flex-shrink:0; }
+  .reifen-row input[type="checkbox"] { width:17px; height:17px; cursor:pointer; accent-color:var(--primary); flex-shrink:0; padding:0; border:none; box-shadow:none; }
   .reifen-row .reifen-label { font-size:13.5px; font-weight:500; cursor:pointer; flex:1; color:var(--ink); }
   .profil-wrap { display:none; align-items:center; gap:6px; margin-left:auto; }
   .profil-wrap.show { display:flex; }
@@ -203,24 +203,138 @@
   .price-label { font-size:12px; color:var(--text-light); text-transform:uppercase; letter-spacing:1px; font-weight:600; }
   .price-value { font-family:var(--font-heading); font-size:32px; font-weight:700; color:var(--primary); letter-spacing:-0.02em; }
 
-  /* RESPONSIVE */
+  /* FOTO-UPLOAD */
+  .fotos-wrap { margin-top:18px; }
+  .fotos-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:10px; margin-top:10px; }
+  .foto-thumb { position:relative; aspect-ratio:4/3; border-radius:10px; overflow:hidden; border:1.5px solid var(--border); background:var(--bg-soft); cursor:pointer; }
+  .foto-thumb img { width:100%; height:100%; object-fit:cover; display:block; }
+  .foto-thumb .foto-del { position:absolute; top:4px; right:4px; width:28px; height:28px; border-radius:50%; background:rgba(192,57,43,0.92); color:white; border:none; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1; box-shadow:0 2px 8px rgba(0,0,0,0.25); }
+  .foto-thumb .foto-del:hover { background:var(--error); transform:scale(1.08); }
+  .foto-thumb .foto-uploading { position:absolute; inset:0; background:rgba(255,255,255,0.85); display:flex; align-items:center; justify-content:center; }
+  .foto-upload-btn { display:inline-flex; align-items:center; gap:10px; padding:14px 22px; background:var(--bg-soft); color:var(--primary); border:2px dashed var(--primary); border-radius:12px; cursor:pointer; font-weight:600; font-size:15px; transition:all 0.18s; user-select:none; }
+  .foto-upload-btn:hover { background:rgba(26,109,212,0.08); transform:translateY(-1px); }
+  .foto-upload-btn input { display:none; }
+  .foto-lightbox { position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9000; display:none; align-items:center; justify-content:center; padding:20px; cursor:zoom-out; }
+  .foto-lightbox.active { display:flex; }
+  .foto-lightbox img { max-width:100%; max-height:100%; border-radius:8px; box-shadow:0 20px 60px rgba(0,0,0,0.6); }
+  .foto-lightbox .lb-close { position:absolute; top:18px; right:22px; background:rgba(255,255,255,0.15); color:white; border:none; width:44px; height:44px; border-radius:50%; font-size:22px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+
+  /* PFLICHTFELD-MARKIERUNG */
+  .form-group.required label::after { content:' *'; color:var(--error); font-weight:700; }
+  textarea.required-empty { border-color:var(--error); box-shadow:0 0 0 3px rgba(192,57,43,0.08); }
+
+  /* MAENGEL-TABELLE: auf Mobile als Karten-Layout (block) darstellen */
+  /* (siehe @media-Block unten) */
+
+  /* REIFEN-3-GRID */
+  .reifen-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  .profil-paar { display:none; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; width:100%; }
+  .profil-paar.show { display:grid; }
+  .profil-paar .pf-cell { display:flex; align-items:center; gap:6px; }
+  .profil-paar input { width:100%; padding:8px 10px; font-size:14px; text-align:right; border-radius:8px; }
+  .profil-paar .pf-cell label { font-size:11px; color:var(--text-muted); white-space:nowrap; }
+
+  /* RESPONSIVE - TABLET (bis 1024px) */
+  @media (max-width:1024px) {
+    body { font-size:16px; }
+    .form-grid { grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
+    .form-container, .overview-container { padding:24px 18px; max-width:100%; }
+    .reifen-3 { grid-template-columns:1fr; }
+  }
+
+  /* RESPONSIVE - HANDY (bis 768px) */
   @media (max-width:768px) {
-    body { font-size:16px; }  /* Mobile-Regel: Body nie unter 16px */
-    .form-grid { grid-template-columns:1fr; }
-    .stats-row { grid-template-columns:repeat(2,1fr); }
-    .nav-tab { padding:12px 14px; font-size:13.5px; }
-    .form-container, .overview-container { padding:20px 16px; }
-    .form-section { padding:22px 20px; }
-    .ankauf-table { overflow-x:auto; }
-    .table-controls { flex-wrap:wrap; }
-    .table-header h2 { font-size:20px; }
-    .stat-value { font-size:28px; }
-    .maengel-table td:first-child { font-size:11px; }
-    header { padding:0 16px; height:60px; }
-    .header-brand { font-size:17px; }
+    body { font-size:17px; line-height:1.55; }
+    /* Inputs auf >=16px halten -> kein iOS-Auto-Zoom */
+    input, select, textarea { font-size:16px; padding:14px 14px; border-radius:10px; }
+    label { font-size:13.5px; }
+    .form-grid { grid-template-columns:1fr; gap:14px; }
+    .form-group { gap:8px; }
+    .stats-row { grid-template-columns:repeat(2,1fr); gap:12px; }
+    .stat-card { padding:18px 16px; }
+    .stat-label { font-size:11.5px; }
+    .stat-value { font-size:30px; }
+
+    /* Navigation Tabs - Touch-tauglich */
+    .nav-tabs { padding:0 12px; }
+    .nav-tab { padding:16px 14px; font-size:15px; flex:1; text-align:center; }
+
+    .form-container, .overview-container { padding:18px 12px; }
+    .form-section { padding:20px 16px; border-radius:14px; }
+    .section-title { font-size:18px; gap:12px; margin-bottom:18px; padding-bottom:14px; }
+    .section-icon { width:36px; height:36px; font-size:15px; }
+
+    /* Checkboxen größer */
+    .checkbox-grid { grid-template-columns:1fr; gap:10px; }
+    .checkbox-item { padding:14px 14px; min-height:52px; }
+    .checkbox-item input[type="checkbox"] { width:22px; height:22px; }
+    .checkbox-item span { font-size:15.5px; }
+
+    /* Reifen */
+    .reifen-row { padding:14px; min-height:52px; }
+    .reifen-row input[type="checkbox"] { width:22px; height:22px; }
+    .reifen-row .reifen-label { font-size:15.5px; }
+    .profil-paar { grid-template-columns:1fr; }
+
+    /* Buttons */
+    .btn { padding:14px 22px; font-size:15.5px; min-height:48px; }
+    .btn-sm { padding:10px 16px; font-size:14px; min-height:0; }
+    .form-actions { flex-direction:column-reverse; gap:10px; }
+    .form-actions .btn { width:100%; justify-content:center; }
+
+    /* Tabelle: horizontal scrollen + Spalten-Filter beibehalten */
+    .ankauf-table { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:12px; }
+    .ankauf-table table { min-width:900px; }
+    .table-controls { width:100%; flex-direction:column; align-items:stretch; }
+    .table-controls #search-input,
+    .table-controls #owner-filter { width:100% !important; padding:14px !important; font-size:15px !important; }
+    .table-header h2 { font-size:22px; }
+
+    /* MÄNGEL: Tabelle auf Mobile als Karten-Layout */
+    .maengel-table, .maengel-table tbody, .maengel-table thead, .maengel-table tr, .maengel-table td, .maengel-table th { display:block; width:100%; }
+    .maengel-table thead { display:none; }
+    .maengel-table tr { background:white; border:1.5px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; }
+    .maengel-table td { padding:0; border:none; margin-bottom:8px; }
+    .maengel-table td:first-child { font-size:13.5px; font-weight:700; color:var(--primary); width:auto; margin-bottom:8px; white-space:normal; }
+    .maengel-table td:last-child { width:auto; }
+    .maengel-table input[type="number"] { text-align:right; }
+    .maengel-table tr:hover td { background:transparent; }
+    .maengel-table tfoot { display:block; }
+    .maengel-table tr.gesamt-row { background:var(--primary); color:white; padding:14px; border:none; }
+    .maengel-table tr.gesamt-row td { color:white; background:transparent; margin-bottom:0; font-size:14px; }
+    .maengel-table tr.gesamt-row td:first-child { color:white; font-size:14px; margin-bottom:8px; }
+    .maengel-table tr.gesamt-row td.gesamt-value { font-size:20px; text-align:right; }
+
+    /* Header */
+    header { padding:0 14px; height:64px; gap:8px; }
+    .stieber-logo-header { height:38px; max-width:140px; }
     .header-title { display:none; }
     .header-divider { display:none; }
-    .login-card { padding:38px 28px; }
+    .user-badge { display:none; }
+    .header-right .btn-sm { padding:8px 12px; }
+
+    /* Login */
+    .login-card { padding:32px 22px; max-width:96vw; }
+    .login-sub { font-size:18px; }
+
+    /* Modal */
+    .modal { padding:24px 18px; max-height:92vh; border-radius:16px; }
+    .modal-title { font-size:20px; }
+    .detail-row { font-size:14.5px; flex-direction:column; align-items:flex-start; gap:2px; }
+    .detail-value { text-align:left; }
+    .price-value { font-size:26px; }
+
+    /* Foto-Upload */
+    .fotos-grid { grid-template-columns:repeat(auto-fill,minmax(120px,1fr)); gap:8px; }
+    .foto-upload-btn { width:100%; justify-content:center; padding:18px; font-size:16px; }
+  }
+
+  /* RESPONSIVE - kleine Handys (bis 380px) */
+  @media (max-width:380px) {
+    .stats-row { grid-template-columns:1fr; }
+    .nav-tab { font-size:14px; padding:14px 8px; }
+    .section-title { font-size:16px; }
+    .login-card { padding:26px 18px; }
   }
 </style>
 </head>
@@ -411,9 +525,61 @@
           </div>
           <div class="form-group"><label>Leistung (PS)</label><input type="number" id="fz_leistung_kw" placeholder="150"></div>
           <div class="form-group"><label>Farbe</label><input type="text" id="fz_farbe" placeholder="Silber Metallic"></div>
+          <div class="form-group">
+            <label>Anzahl Sitzplätze</label>
+            <select id="fz_sitzplaetze">
+              <option value="">– wählen –</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+              <option value="6">6</option>
+              <option value="7">7</option>
+              <option value="8">8</option>
+              <option value="9">9</option>
+              <option value="mehr als 9">mehr als 9</option>
+            </select>
+          </div>
           <div class="form-group"><label>Anzahl Vorbesitzer</label><input type="number" id="fz_halteranzahl" placeholder="1" min="1"></div>
           <div class="form-group"><label>HU bis</label><input type="month" id="fz_hu_datum"></div>
           <div class="form-group"><label>Anzahl Schlüssel</label><input type="number" id="fz_anzahl_schluessel" placeholder="2" min="0"></div>
+        </div>
+
+        <div class="sub-section">
+          <div class="sub-label">Bereifung</div>
+          <div class="reifen-3">
+            <div class="reifen-row" id="reifen-sommer-row" style="flex-direction:column;align-items:stretch;">
+              <div style="display:flex;align-items:center;gap:10px;width:100%;">
+                <input type="checkbox" id="reifen_sommer" onchange="toggleProfil('sommer')">
+                <span class="reifen-label" onclick="document.getElementById('reifen_sommer').click()">☀️ Sommerreifen</span>
+              </div>
+              <div class="profil-paar" id="profil-sommer-wrap">
+                <div class="pf-cell"><label>Profil vorne (mm)</label><input type="number" id="reifen_sommer_profil_vorne" placeholder="6.5" step="0.5" min="0" max="15"></div>
+                <div class="pf-cell"><label>Profil hinten (mm)</label><input type="number" id="reifen_sommer_profil_hinten" placeholder="6.5" step="0.5" min="0" max="15"></div>
+              </div>
+            </div>
+            <div class="reifen-row" id="reifen-winter-row" style="flex-direction:column;align-items:stretch;">
+              <div style="display:flex;align-items:center;gap:10px;width:100%;">
+                <input type="checkbox" id="reifen_winter" onchange="toggleProfil('winter')">
+                <span class="reifen-label" onclick="document.getElementById('reifen_winter').click()">❄️ Winterreifen</span>
+              </div>
+              <div class="profil-paar" id="profil-winter-wrap">
+                <div class="pf-cell"><label>Profil vorne (mm)</label><input type="number" id="reifen_winter_profil_vorne" placeholder="5.0" step="0.5" min="0" max="15"></div>
+                <div class="pf-cell"><label>Profil hinten (mm)</label><input type="number" id="reifen_winter_profil_hinten" placeholder="5.0" step="0.5" min="0" max="15"></div>
+              </div>
+            </div>
+            <div class="reifen-row" id="reifen-ganzjahres-row" style="flex-direction:column;align-items:stretch;">
+              <div style="display:flex;align-items:center;gap:10px;width:100%;">
+                <input type="checkbox" id="reifen_ganzjahres" onchange="toggleProfil('ganzjahres')">
+                <span class="reifen-label" onclick="document.getElementById('reifen_ganzjahres').click()">🌦️ Ganzjahresreifen</span>
+              </div>
+              <div class="profil-paar" id="profil-ganzjahres-wrap">
+                <div class="pf-cell"><label>Profil vorne (mm)</label><input type="number" id="reifen_ganzjahres_profil_vorne" placeholder="5.5" step="0.5" min="0" max="15"></div>
+                <div class="pf-cell"><label>Profil hinten (mm)</label><input type="number" id="reifen_ganzjahres_profil_hinten" placeholder="5.5" step="0.5" min="0" max="15"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -436,28 +602,6 @@
           <label class="checkbox-item"><input type="checkbox" id="ausstattung_kamera_hinten"><span>📷 Rückfahrkamera</span></label>
           <label class="checkbox-item"><input type="checkbox" id="ausstattung_kamera_360"><span>📷 360°-Kamera</span></label>
         </div>
-
-        <div class="sub-section">
-          <div class="sub-label">Reifen</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-            <div class="reifen-row" id="reifen-sommer-row">
-              <input type="checkbox" id="reifen_sommer" onchange="toggleProfil('sommer')">
-              <span class="reifen-label" onclick="document.getElementById('reifen_sommer').click()">☀️ Sommerreifen vorhanden</span>
-              <div class="profil-wrap" id="profil-sommer-wrap">
-                <input type="number" id="reifen_sommer_profil" placeholder="6.5" step="0.5" min="0" max="15">
-                <span>mm Profil</span>
-              </div>
-            </div>
-            <div class="reifen-row" id="reifen-winter-row">
-              <input type="checkbox" id="reifen_winter" onchange="toggleProfil('winter')">
-              <span class="reifen-label" onclick="document.getElementById('reifen_winter').click()">❄️ Winterreifen vorhanden</span>
-              <div class="profil-wrap" id="profil-winter-wrap">
-                <input type="number" id="reifen_winter_profil" placeholder="5.0" step="0.5" min="0" max="15">
-                <span>mm Profil</span>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- 4 · Zusicherungen des Verkäufers -->
@@ -469,6 +613,15 @@
           <label class="checkbox-item"><input type="checkbox" id="zusicherung_kein_nachlack"><span>✅ Nicht nachlackiert</span></label>
           <label class="checkbox-item"><input type="checkbox" id="zusicherung_kein_mietwagen"><span>✅ Kein Mietfahrzeug</span></label>
           <label class="checkbox-item"><input type="checkbox" id="zusicherung_kein_eu_import"><span>✅ Kein EU-Import</span></label>
+        </div>
+
+        <div class="sub-section">
+          <div class="sub-label">Bekannte Mängel (vom Verkäufer angegeben)</div>
+          <div class="form-group required full-width">
+            <label for="vk_bekannte_maengel">Dem Verkäufer sind folgende Mängel bekannt</label>
+            <textarea id="vk_bekannte_maengel" rows="4" placeholder="z.B. Klimaanlage kühlt nicht richtig, Steinschlag in Frontscheibe, leichtes Schaltgeräusch im 2. Gang, … &#10;&#10;Falls dem Verkäufer KEINE Mängel bekannt sind, bitte explizit eintragen: 'Keine Mängel bekannt'."></textarea>
+            <small style="color:var(--text-muted);font-size:12.5px;margin-top:4px;">Pflichtfeld – wird in den Kaufvertrag übernommen (rechtlich relevant: Verkäufer haftet bei arglistig verschwiegenen Mängeln).</small>
+          </div>
         </div>
 
         <div class="sub-section">
@@ -496,6 +649,8 @@
       <!-- 5 · Mängel & Bewertung -->
       <div class="form-section">
         <div class="section-title"><div class="section-icon">5</div>Mängel &amp; Bewertung</div>
+
+        <!-- Desktop / Tablet: Tabelle -->
         <table class="maengel-table">
           <thead>
             <tr>
@@ -504,23 +659,8 @@
               <th style="text-align:right;">Instandsetzung (€)</th>
             </tr>
           </thead>
-          <tbody>
-            <tr><td>Hauptuntersuchung (HU)</td><td><input type="text" id="mn_hu" placeholder="z.B. HU fällig, abgelaufen…"></td><td><input type="number" id="mn_hu_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Kundendienst</td><td><input type="text" id="mn_kd" placeholder="z.B. Öl + Filter, Zahnriemen…"></td><td><input type="number" id="mn_kd_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Vorderachse</td><td><input type="text" id="mn_vorderachse" placeholder="z.B. Traggelenke, Spurstangen…"></td><td><input type="number" id="mn_vorderachse_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Hinterachse</td><td><input type="text" id="mn_hinterachse" placeholder="z.B. Längslenker, Silentbuchsen…"></td><td><input type="number" id="mn_hinterachse_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Unterboden</td><td><input type="text" id="mn_unterboden" placeholder="z.B. Rostschäden, Auspuff…"></td><td><input type="number" id="mn_unterboden_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Motor</td><td><input type="text" id="mn_motor" placeholder="z.B. Ölverlust, Motorgeräusch…"></td><td><input type="number" id="mn_motor_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Getriebe</td><td><input type="text" id="mn_getriebe" placeholder="z.B. Schaltprobleme, undicht…"></td><td><input type="number" id="mn_getriebe_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Reifen</td><td><input type="text" id="mn_reifen" placeholder="z.B. Reifen erneuern…"></td><td><input type="number" id="mn_reifen_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Bremsen</td><td><input type="text" id="mn_bremsen" placeholder="z.B. Beläge + Scheiben VA…"></td><td><input type="number" id="mn_bremsen_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Karosserie/Lack 1</td><td><input type="text" id="mn_karosserie1" placeholder="z.B. Delle Fahrertür…"></td><td><input type="number" id="mn_karosserie1_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Karosserie/Lack 2</td><td><input type="text" id="mn_karosserie2" placeholder="z.B. Kratzer Stoßstange…"></td><td><input type="number" id="mn_karosserie2_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Karosserie/Lack 3</td><td><input type="text" id="mn_karosserie3" placeholder="z.B. Steinschlag Motorhaube…"></td><td><input type="number" id="mn_karosserie3_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Karosserie/Lack 4</td><td><input type="text" id="mn_karosserie4" placeholder=""></td><td><input type="number" id="mn_karosserie4_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Karosserie/Lack 5</td><td><input type="text" id="mn_karosserie5" placeholder=""></td><td><input type="number" id="mn_karosserie5_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Aufbereitung</td><td><input type="text" id="mn_aufbereitung" placeholder="z.B. Innen- und Außenpflege…"></td><td><input type="number" id="mn_aufbereitung_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
-            <tr><td>Garantierückstellung</td><td><input type="text" id="mn_garantie" placeholder="z.B. Getriebegarantie 12 Monate…"></td><td><input type="number" id="mn_garantie_kosten" placeholder="0" step="10" oninput="calcSumme()"></td></tr>
+          <tbody id="maengel-tbody">
+            <!-- wird in JS aus MN_ROWS gerendert (mit Mobile-Cards-Sync) -->
           </tbody>
           <tfoot>
             <tr class="gesamt-row">
@@ -529,7 +669,28 @@
             </tr>
           </tfoot>
         </table>
+
+        <!-- Mobile: Karten-Layout (gleiche Inputs, dieselben IDs gibt's nur einmal -> wir verwenden Tabelle mit display:block-Trick) -->
         <input type="hidden" id="aufwendungen_gesamt">
+
+        <div class="sub-section">
+          <div class="sub-label">Bemerkungen zur Mängel-Bewertung</div>
+          <div class="form-group full-width">
+            <textarea id="mn_bemerkungen" rows="3" placeholder="Interne Notizen zur Bewertung: Zustand allgemein, Auffälligkeiten bei der Besichtigung, Probefahrt-Eindrücke …"></textarea>
+          </div>
+        </div>
+
+        <div class="sub-section fotos-wrap">
+          <div class="sub-label">Fotos vom Fahrzeug</div>
+          <p style="font-size:13.5px;color:var(--text-light);margin-bottom:10px;">
+            Beim Handy/Tablet öffnet sich die Kamera – „Galerie" für vorhandene Fotos.
+          </p>
+          <label class="foto-upload-btn">
+            📷 Foto aufnehmen / hochladen
+            <input type="file" id="foto-input" accept="image/*" capture="environment" multiple onchange="handleFotoSelect(event)">
+          </label>
+          <div class="fotos-grid" id="fotos-grid"></div>
+        </div>
 
         <div class="form-grid" style="margin-top:20px;">
           <div class="form-group">
@@ -816,6 +977,32 @@ function applyFilterSort() {
   renderTable(result);
 }
 
+// ===== STORAGE / FOTOS =====
+const FOTO_BUCKET = 'ankauf-fotos';
+let currentFotos = []; // Array von Storage-Pfaden des aktuell bearbeiteten Ankaufs
+
+// ===== MÄNGEL-TABELLE RENDERN =====
+const MN_PLACEHOLDER = {
+  hu:'z.B. HU fällig, abgelaufen…', kd:'z.B. Öl + Filter, Zahnriemen…',
+  vorderachse:'z.B. Traggelenke, Spurstangen…', hinterachse:'z.B. Längslenker, Silentbuchsen…',
+  unterboden:'z.B. Rostschäden, Auspuff…', motor:'z.B. Ölverlust, Motorgeräusch…',
+  getriebe:'z.B. Schaltprobleme, undicht…', reifen:'z.B. Reifen erneuern…',
+  bremsen:'z.B. Beläge + Scheiben VA…',
+  karosserie1:'z.B. Delle Fahrertür…', karosserie2:'z.B. Kratzer Stoßstange…',
+  karosserie3:'z.B. Steinschlag Motorhaube…', karosserie4:'', karosserie5:'',
+  aufbereitung:'z.B. Innen- und Außenpflege…', garantie:'z.B. Getriebegarantie 12 Monate…'
+};
+function renderMaengelRows() {
+  const tbody = document.getElementById('maengel-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = MN_ROWS.map(r => `
+    <tr>
+      <td>${r.label}</td>
+      <td><input type="text" id="mn_${r.key}" placeholder="${MN_PLACEHOLDER[r.key]||''}"></td>
+      <td><input type="number" id="mn_${r.key}_kosten" placeholder="0" step="10" oninput="calcSumme()"></td>
+    </tr>`).join('');
+}
+
 // ===== MÄNGEL SUMME =====
 function calcSumme() {
   const total = MN_ROWS.reduce((s,r) => s + (parseFloat(document.getElementById('mn_'+r.key+'_kosten')?.value)||0), 0);
@@ -823,21 +1010,145 @@ function calcSumme() {
   document.getElementById('aufwendungen_gesamt').value = total;
 }
 
-// ===== REIFEN PROFILTIEFE =====
+// ===== REIFEN PROFILTIEFE (vorne/hinten getrennt, 3 Reifentypen) =====
 function toggleProfil(typ) {
   const wrap = document.getElementById('profil-'+typ+'-wrap');
   const cb   = document.getElementById('reifen_'+typ);
+  if (!wrap || !cb) return;
   wrap.classList.toggle('show', cb.checked);
-  if (!cb.checked) document.getElementById('reifen_'+typ+'_profil').value='';
+  if (!cb.checked) {
+    const vEl = document.getElementById('reifen_'+typ+'_profil_vorne');
+    const hEl = document.getElementById('reifen_'+typ+'_profil_hinten');
+    if (vEl) vEl.value = '';
+    if (hEl) hEl.value = '';
+  }
+}
+
+// ===== FOTO-UPLOAD =====
+function fotoPublicUrl(path) {
+  return db.storage.from(FOTO_BUCKET).getPublicUrl(path).data.publicUrl;
+}
+
+function renderFotos() {
+  const grid = document.getElementById('fotos-grid');
+  if (!grid) return;
+  grid.innerHTML = currentFotos.map((path, idx) => `
+    <div class="foto-thumb" data-idx="${idx}">
+      <img src="${fotoPublicUrl(path)}" alt="Fahrzeugfoto ${idx+1}" onclick="openLightbox('${fotoPublicUrl(path)}')">
+      <button type="button" class="foto-del" title="Foto löschen" onclick="deleteFoto(${idx})">✕</button>
+    </div>
+  `).join('');
+}
+
+async function handleFotoSelect(event) {
+  const files = Array.from(event.target.files || []);
+  event.target.value = ''; // Input zurücksetzen, damit dieselbe Datei nochmal gewählt werden kann
+  if (!files.length) return;
+
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) {
+      showToast('Nur Bilddateien erlaubt: '+file.name, 'error');
+      continue;
+    }
+    await uploadFoto(file);
+  }
+  renderFotos();
+}
+
+// Bild client-seitig auf max. 1600px verkleinern (spart Speicher und Upload-Zeit)
+async function resizeImage(file, maxDim = 1600, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const reader = new FileReader();
+    reader.onload = e => { img.src = e.target.result; };
+    reader.onerror = reject;
+    img.onload = () => {
+      let { width, height } = img;
+      if (width > maxDim || height > maxDim) {
+        const ratio = Math.min(maxDim/width, maxDim/height);
+        width  = Math.round(width * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Resize fehlgeschlagen')), 'image/jpeg', quality);
+    };
+    img.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadFoto(file) {
+  try {
+    // Skip resize fuer HEIC (Browser kann oft nicht decoden) -> direkt hochladen
+    const isHeic = /heic|heif/i.test(file.type) || /\.heic$/i.test(file.name);
+    const blob = isHeic ? file : await resizeImage(file).catch(() => file);
+    const ext  = isHeic ? 'heic' : 'jpg';
+    const folder = editingId || 'tmp_'+(currentUserId||'anon');
+    const path = `${folder}/${crypto.randomUUID()}.${ext}`;
+    const { error } = await db.storage.from(FOTO_BUCKET).upload(path, blob, {
+      contentType: isHeic ? file.type : 'image/jpeg',
+      upsert: false
+    });
+    if (error) throw error;
+    currentFotos.push(path);
+  } catch (err) {
+    showToast('Foto-Upload fehlgeschlagen: '+err.message, 'error');
+    console.error(err);
+  }
+}
+
+async function deleteFoto(idx) {
+  const path = currentFotos[idx];
+  if (!path) return;
+  if (!confirm('Foto wirklich löschen?')) return;
+  const { error } = await db.storage.from(FOTO_BUCKET).remove([path]);
+  if (error) { showToast('Löschen fehlgeschlagen: '+error.message, 'error'); return; }
+  currentFotos.splice(idx, 1);
+  renderFotos();
+}
+
+function openLightbox(url) {
+  let lb = document.getElementById('foto-lightbox');
+  if (!lb) {
+    lb = document.createElement('div');
+    lb.id = 'foto-lightbox';
+    lb.className = 'foto-lightbox';
+    lb.innerHTML = `<button class="lb-close" type="button">✕</button><img alt="Foto">`;
+    lb.onclick = () => lb.classList.remove('active');
+    document.body.appendChild(lb);
+  }
+  lb.querySelector('img').src = url;
+  lb.classList.add('active');
 }
 
 // ===== SPEICHERN =====
 async function saveAnkauf() {
   const btn = document.getElementById('save-btn');
   btn.disabled=true; btn.textContent='⏳ Speichern…';
+
   const hersteller = document.getElementById('fz_hersteller').value.trim();
   const modell     = document.getElementById('fz_modell').value.trim();
-  if (!hersteller||!modell) { showToast('Bitte Hersteller und Modell angeben!','error'); btn.disabled=false; btn.textContent='💾 Ankauf speichern'; return; }
+  if (!hersteller||!modell) {
+    showToast('Bitte Hersteller und Modell angeben!','error');
+    btn.disabled=false; btn.textContent=editingId?'✏️ Änderungen speichern':'💾 Ankauf speichern';
+    return;
+  }
+
+  // PFLICHTFELD: Bekannte Mängel
+  const bekannteMaengelEl = document.getElementById('vk_bekannte_maengel');
+  const bekannteMaengel   = bekannteMaengelEl.value.trim();
+  if (!bekannteMaengel) {
+    bekannteMaengelEl.classList.add('required-empty');
+    bekannteMaengelEl.focus();
+    bekannteMaengelEl.scrollIntoView({behavior:'smooth', block:'center'});
+    showToast('Bitte „Bekannte Mängel" ausfüllen (Pflichtfeld). Falls keine bekannt: „Keine Mängel bekannt" eintragen.','error');
+    btn.disabled=false; btn.textContent=editingId?'✏️ Änderungen speichern':'💾 Ankauf speichern';
+    return;
+  }
+  bekannteMaengelEl.classList.remove('required-empty');
 
   const total = MN_ROWS.reduce((s,r)=>s+(parseFloat(document.getElementById('mn_'+r.key+'_kosten')?.value)||0),0);
 
@@ -845,6 +1156,7 @@ async function saveAnkauf() {
     interne_nr:v('interne_nr'),
     vk_vorname:v('vk_vorname'), vk_nachname:v('vk_nachname'), vk_strasse:v('vk_strasse'),
     vk_plz:v('vk_plz'), vk_ort:v('vk_ort'), vk_telefon:v('vk_telefon'), vk_email:v('vk_email'),
+    vk_bekannte_maengel: bekannteMaengel,
     fz_hersteller:hersteller, fz_modell:modell, fz_typ:v('fz_typ'),
     fz_kennzeichen:v('fz_kennzeichen').toUpperCase(),
     fz_fahrgestellnr:v('fz_fahrgestellnr').toUpperCase(),
@@ -852,7 +1164,9 @@ async function saveAnkauf() {
     fz_km_stand:parseInt(v('fz_km_stand'))||null,
     fz_kraftstoff:v('fz_kraftstoff'), fz_getriebe:v('fz_getriebe'), fz_antrieb:v('fz_antrieb'),
     fz_leistung_kw:parseInt(v('fz_leistung_kw'))||null,
-    fz_farbe:v('fz_farbe'), fz_halteranzahl:parseInt(v('fz_halteranzahl'))||null,
+    fz_farbe:v('fz_farbe'),
+    fz_sitzplaetze:v('fz_sitzplaetze')||null,
+    fz_halteranzahl:parseInt(v('fz_halteranzahl'))||null,
     fz_hu_datum:v('fz_hu_datum')||null,
     fz_anzahl_schluessel:parseInt(v('fz_anzahl_schluessel'))||null,
     // Ausstattung
@@ -864,11 +1178,16 @@ async function saveAnkauf() {
     ausstattung_lenkradheizung:cb('ausstattung_lenkradheizung'),
     ausstattung_eph_vorne:cb('ausstattung_eph_vorne'), ausstattung_eph_hinten:cb('ausstattung_eph_hinten'),
     ausstattung_kamera_hinten:cb('ausstattung_kamera_hinten'), ausstattung_kamera_360:cb('ausstattung_kamera_360'),
-    // Reifen
+    // Reifen (v4: Profiltiefe vorne/hinten getrennt + Ganzjahresreifen)
     reifen_sommer:cb('reifen_sommer'),
-    reifen_sommer_profil:cb('reifen_sommer')?(parseFloat(v('reifen_sommer_profil'))||null):null,
+    reifen_sommer_profil_vorne :cb('reifen_sommer')?(parseFloat(v('reifen_sommer_profil_vorne'))||null):null,
+    reifen_sommer_profil_hinten:cb('reifen_sommer')?(parseFloat(v('reifen_sommer_profil_hinten'))||null):null,
     reifen_winter:cb('reifen_winter'),
-    reifen_winter_profil:cb('reifen_winter')?(parseFloat(v('reifen_winter_profil'))||null):null,
+    reifen_winter_profil_vorne :cb('reifen_winter')?(parseFloat(v('reifen_winter_profil_vorne'))||null):null,
+    reifen_winter_profil_hinten:cb('reifen_winter')?(parseFloat(v('reifen_winter_profil_hinten'))||null):null,
+    reifen_ganzjahres:cb('reifen_ganzjahres'),
+    reifen_ganzjahres_profil_vorne :cb('reifen_ganzjahres')?(parseFloat(v('reifen_ganzjahres_profil_vorne'))||null):null,
+    reifen_ganzjahres_profil_hinten:cb('reifen_ganzjahres')?(parseFloat(v('reifen_ganzjahres_profil_hinten'))||null):null,
     // Zusicherungen
     zusicherung_unfallfrei:cb('zusicherung_unfallfrei'), zusicherung_kein_hagel:cb('zusicherung_kein_hagel'),
     zusicherung_kein_nachlack:cb('zusicherung_kein_nachlack'), zusicherung_kein_mietwagen:cb('zusicherung_kein_mietwagen'),
@@ -882,19 +1201,29 @@ async function saveAnkauf() {
       ['mn_'+r.key, v('mn_'+r.key)||null],
       ['mn_'+r.key+'_kosten', parseFloat(document.getElementById('mn_'+r.key+'_kosten')?.value)||null],
     ])),
+    mn_bemerkungen:v('mn_bemerkungen')||null,
     aufwendungen_gesamt:total||null,
     ankaufspreis:parseFloat(v('ankaufspreis'))||null,
     status:v('status'), bearbeiter_name:v('bearbeiter_name'), notizen:v('notizen'),
+    fotos: currentFotos || [],
   };
 
-  let error;
-  if (editingId) ({ error } = await db.from('fahrzeugankauf').update(withOwner(payload,true)).eq('id',editingId));
-  else           ({ error } = await db.from('fahrzeugankauf').insert([withOwner(payload,false)]));
+  let error, savedId = editingId;
+  if (editingId) {
+    ({ error } = await db.from('fahrzeugankauf').update(withOwner(payload,true)).eq('id',editingId));
+  } else {
+    const { data, error: insErr } = await db.from('fahrzeugankauf').insert([withOwner(payload,false)]).select('id').single();
+    error = insErr;
+    if (data) savedId = data.id;
+  }
 
-  btn.disabled=false; btn.textContent='💾 Ankauf speichern';
+  btn.disabled=false; btn.textContent=editingId?'✏️ Änderungen speichern':'💾 Ankauf speichern';
   if (error) { showToast('Fehler: '+error.message,'error'); return; }
+
+  // Bei NEUEN Ankäufen liegen Fotos noch im tmp_-Ordner. Pfade-Aktualisierung optional;
+  // wir lassen sie wie sie sind (Pfade bleiben gültig, da public-Bucket).
   showToast(editingId?'Ankauf aktualisiert ✓':'Ankauf gespeichert ✓','success');
-  editingId=null; resetForm(); switchTabDirect('overview');
+  editingId=null; currentFotos=[]; resetForm(); switchTabDirect('overview');
 }
 
 // ===== DETAIL MODAL =====
@@ -917,6 +1246,7 @@ function showDetail(id) {
     ['Antrieb',       a.fz_antrieb||'–'],
     ['Leistung',      a.fz_leistung_kw?a.fz_leistung_kw+' PS':'–'],
     ['Farbe',         a.fz_farbe||'–'],
+    ['Sitzplätze',    a.fz_sitzplaetze||'–'],
     ['Vorbesitzer',   a.fz_halteranzahl||'–'],
     ['HU bis',        a.fz_hu_datum||'–'],
     ['Verkäufer',     (a.vk_vorname||'')+' '+(a.vk_nachname||'')||'–'],
@@ -926,9 +1256,27 @@ function showDetail(id) {
     ['Bearbeiter',    a.bearbeiter_name||'–'],
   ];
 
+  // Fotos im Modal anzeigen
+  const fotos = Array.isArray(a.fotos) ? a.fotos : [];
+  const fotosHtml = fotos.length ? `
+    <div style="margin-top:18px;">
+      <div class="sub-label" style="margin-bottom:8px;">Fotos (${fotos.length})</div>
+      <div class="fotos-grid">
+        ${fotos.map(p => `<div class="foto-thumb"><img src="${fotoPublicUrl(p)}" alt="Foto" onclick="openLightbox('${fotoPublicUrl(p)}')"></div>`).join('')}
+      </div>
+    </div>` : '';
+
+  const bekannteMaengelHtml = a.vk_bekannte_maengel ? `
+    <div style="margin-top:18px;padding:12px 14px;background:#fffbf0;border-left:3px solid var(--warn);border-radius:8px;">
+      <div style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-light);margin-bottom:6px;">Bekannte Mängel (vom Verkäufer)</div>
+      <div style="font-size:14px;color:var(--ink);white-space:pre-wrap;">${escapeHtml(a.vk_bekannte_maengel)}</div>
+    </div>` : '';
+
   document.getElementById('modal-content').innerHTML = `
     ${rows.map(([l,vv])=>`<div class="detail-row"><span class="detail-label">${l}</span><span class="detail-value">${vv}</span></div>`).join('')}
+    ${bekannteMaengelHtml}
     ${a.ankaufspreis?`<div class="price-box"><div><div class="price-label">Ankaufspreis</div></div><div class="price-value">${formatEuro(a.ankaufspreis)}</div></div>`:''}
+    ${fotosHtml}
   `;
   document.getElementById('modal-edit-btn').onclick   = ()=>{ closeModal(); editAnkauf(id); };
   document.getElementById('modal-zustand-btn').onclick = ()=>printZustandsbericht(id);
@@ -944,10 +1292,12 @@ function editAnkauf(id) {
 
   // Text/Number/Select fields
   const fields = ['interne_nr','vk_vorname','vk_nachname','vk_strasse','vk_plz','vk_ort','vk_telefon','vk_email',
+    'vk_bekannte_maengel',
     'fz_hersteller','fz_modell','fz_typ','fz_kennzeichen','fz_fahrgestellnr','fz_erstzulassung',
     'fz_km_stand','fz_kraftstoff','fz_getriebe','fz_antrieb','fz_leistung_kw','fz_farbe',
-    'fz_halteranzahl','fz_hu_datum','fz_anzahl_schluessel',
+    'fz_sitzplaetze','fz_halteranzahl','fz_hu_datum','fz_anzahl_schluessel',
     'kd_km_faellig','kd_datum_faellig',
+    'mn_bemerkungen',
     'ankaufspreis','status','bearbeiter_name','notizen'];
   fields.forEach(f => {
     const el = document.getElementById(f);
@@ -960,20 +1310,28 @@ function editAnkauf(id) {
     }
   });
 
+  // Pflichtfeld-Markierung beim Edit zurücksetzen
+  document.getElementById('vk_bekannte_maengel').classList.remove('required-empty');
+
   // Checkboxen
   const cbs = ['ausstattung_navi','ausstattung_soundsystem','ausstattung_klimaautomatik',
     'ausstattung_sitzheizung','ausstattung_shz_hinten','ausstattung_leder','ausstattung_panorama',
     'ausstattung_ahk','ausstattung_standhz','ausstattung_lenkradheizung',
     'ausstattung_eph_vorne','ausstattung_eph_hinten','ausstattung_kamera_hinten','ausstattung_kamera_360',
-    'reifen_sommer','reifen_winter',
+    'reifen_sommer','reifen_winter','reifen_ganzjahres',
     'zusicherung_unfallfrei','zusicherung_kein_hagel','zusicherung_kein_nachlack',
     'zusicherung_kein_mietwagen','zusicherung_kein_eu_import','kd_alle_durchgefuehrt'];
   cbs.forEach(f => { const el=document.getElementById(f); if(el) el.checked=!!a[f]; });
 
-  // Reifen Profiltiefe
-  ['sommer','winter'].forEach(t => {
-    const profEl = document.getElementById('reifen_'+t+'_profil');
-    if (profEl && a['reifen_'+t+'_profil']!=null) profEl.value=a['reifen_'+t+'_profil'];
+  // Reifen Profiltiefe (vorne/hinten, mit Backward-Compat zu altem 'reifen_*_profil')
+  ['sommer','winter','ganzjahres'].forEach(t => {
+    const v1 = a['reifen_'+t+'_profil_vorne'];
+    const v2 = a['reifen_'+t+'_profil_hinten'];
+    const vAlt = a['reifen_'+t+'_profil']; // alter Wert v3
+    const vEl = document.getElementById('reifen_'+t+'_profil_vorne');
+    const hEl = document.getElementById('reifen_'+t+'_profil_hinten');
+    if (vEl) vEl.value = (v1!=null?v1:(vAlt!=null?vAlt:''));
+    if (hEl) hEl.value = (v2!=null?v2:(vAlt!=null?vAlt:''));
     toggleProfil(t);
   });
 
@@ -985,6 +1343,10 @@ function editAnkauf(id) {
     if (kosEl  && a['mn_'+r.key+'_kosten']!=null) kosEl.value=a['mn_'+r.key+'_kosten'];
   });
   calcSumme();
+
+  // Fotos laden
+  currentFotos = Array.isArray(a.fotos) ? [...a.fotos] : [];
+  renderFotos();
 
   document.getElementById('save-btn').textContent='✏️ Änderungen speichern';
 }
@@ -1014,9 +1376,22 @@ function printZustandsbericht(id) {
     [a.ausstattung_eph_hinten,     'EPH hinten'],
     [a.ausstattung_kamera_hinten,  'Rückfahrkamera'],
     [a.ausstattung_kamera_360,     '360°-Kamera'],
-    [a.reifen_sommer,              'Sommerreifen'+( a.reifen_sommer_profil?' ('+a.reifen_sommer_profil+' mm Profil)':'')],
-    [a.reifen_winter,              'Winterreifen'+(  a.reifen_winter_profil?'  ('+a.reifen_winter_profil+' mm Profil)':'')],
   ].filter(x=>x[0]).map(x=>x[1]);
+
+  const reifenItems = [
+    [a.reifen_sommer,     'Sommerreifen'    + reifenProfilLabel(a,'sommer')],
+    [a.reifen_winter,     'Winterreifen'    + reifenProfilLabel(a,'winter')],
+    [a.reifen_ganzjahres, 'Ganzjahresreifen'+ reifenProfilLabel(a,'ganzjahres')],
+  ].filter(x=>x[0]).map(x=>x[1]);
+
+  const fotos = Array.isArray(a.fotos) ? a.fotos : [];
+  const fotosHtml = fotos.length ? `
+    <div class="sec" style="page-break-inside:avoid;">
+      <div class="sec-title">Fotos (${fotos.length})</div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6pt;">
+        ${fotos.map(p => `<img src="${fotoPublicUrl(p)}" style="width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:4pt;border:1px solid #ddd;">`).join('')}
+      </div>
+    </div>` : '';
 
   const mangelRows = MN_ROWS.map(r => {
     const desc = a['mn_'+r.key]||'';
@@ -1089,12 +1464,20 @@ function printZustandsbericht(id) {
     ${a.fz_antrieb?`<tr><td>Antrieb:</td><td>${a.fz_antrieb}</td></tr>`:''}
     ${a.fz_leistung_kw?`<tr><td>Leistung:</td><td>${a.fz_leistung_kw} PS</td></tr>`:''}
     ${a.fz_farbe?`<tr><td>Farbe:</td><td>${a.fz_farbe}</td></tr>`:''}
+    ${a.fz_sitzplaetze?`<tr><td>Sitzplätze:</td><td>${a.fz_sitzplaetze}</td></tr>`:''}
     ${a.fz_halteranzahl?`<tr><td>Vorbesitzer:</td><td>${a.fz_halteranzahl}</td></tr>`:''}
     ${a.fz_hu_datum?`<tr><td>HU gültig bis:</td><td>${a.fz_hu_datum}</td></tr>`:''}
     ${a.fz_anzahl_schluessel!=null?`<tr><td>Anzahl Schlüssel:</td><td>${a.fz_anzahl_schluessel}</td></tr>`:''}
+    ${reifenItems.length?`<tr><td>Bereifung:</td><td>${reifenItems.join(' · ')}</td></tr>`:''}
     ${ausstItems.length?`<tr><td>Ausstattung:</td><td>${ausstItems.join(' · ')}</td></tr>`:''}
   </table>
 </div>
+
+${a.vk_bekannte_maengel?`
+<div class="sec">
+  <div class="sec-title">Vom Verkäufer angegebene bekannte Mängel</div>
+  <div style="background:#fffbf0;border-left:3px solid #c8982a;padding:8pt 12pt;font-size:9.5pt;color:#333;line-height:1.6;white-space:pre-wrap;">${escapeHtml(a.vk_bekannte_maengel)}</div>
+</div>`:''}
 
 <div class="sec">
   <div class="sec-title">Mängel &amp; Instandsetzungskosten</div>
@@ -1103,6 +1486,7 @@ function printZustandsbericht(id) {
     <tbody>${mangelRows}</tbody>
     <tfoot><tr class="total-row"><td colspan="2">Gesamt Instandsetzungskosten</td><td style="text-align:right;">${formatEuro_plain(totalKosten)}</td></tr></tfoot>
   </table>
+  ${a.mn_bemerkungen?`<div style="margin-top:8pt;background:#f5f8fc;border-left:3px solid #003366;padding:7pt 10pt;font-size:9pt;color:#333;line-height:1.5;"><strong>Bemerkungen:</strong> ${escapeHtml(a.mn_bemerkungen)}</div>`:''}
 </div>
 
 ${a.ankaufspreis?`
@@ -1110,6 +1494,8 @@ ${a.ankaufspreis?`
   <div class="preis-label">Vereinbarter Ankaufspreis</div>
   <div class="preis-value">${formatEuro_plain(a.ankaufspreis)}</div>
 </div>`:''}
+
+${fotosHtml}
 
 <div class="footer">
   Autohaus Stieber GmbH · Emerholzweg 5 · 70439 Stuttgart-Stammheim · Tel. 0711 80 60 94-0 · service@autohaus-stieber.de<br>
@@ -1148,8 +1534,12 @@ function printKaufvertrag(id) {
     [a.ausstattung_eph_hinten,     'EPH hinten'],
     [a.ausstattung_kamera_hinten,  'Rückfahrkamera'],
     [a.ausstattung_kamera_360,     '360°-Kamera'],
-    [a.reifen_sommer,              'Sommerreifen'+(a.reifen_sommer_profil?' ('+a.reifen_sommer_profil+' mm)':'')],
-    [a.reifen_winter,              'Winterreifen'+(a.reifen_winter_profil?' ('+a.reifen_winter_profil+' mm)':'')],
+  ].filter(x=>x[0]).map(x=>x[1]);
+
+  const reifenListe = [
+    [a.reifen_sommer,     'Sommerreifen'    + reifenProfilLabel(a,'sommer')],
+    [a.reifen_winter,     'Winterreifen'    + reifenProfilLabel(a,'winter')],
+    [a.reifen_ganzjahres, 'Ganzjahresreifen'+ reifenProfilLabel(a,'ganzjahres')],
   ].filter(x=>x[0]).map(x=>x[1]);
 
   const zusListe = [
@@ -1264,9 +1654,11 @@ function printKaufvertrag(id) {
     ${a.fz_antrieb?`<tr><td>Antrieb:</td><td>${a.fz_antrieb}</td></tr>`:''}
     ${a.fz_leistung_kw?`<tr><td>Leistung:</td><td>${a.fz_leistung_kw} PS</td></tr>`:''}
     ${a.fz_farbe?`<tr><td>Farbe:</td><td>${a.fz_farbe}</td></tr>`:''}
+    ${a.fz_sitzplaetze?`<tr><td>Anzahl Sitzplätze:</td><td>${a.fz_sitzplaetze}</td></tr>`:''}
     ${a.fz_halteranzahl?`<tr><td>Anzahl Vorhalter:</td><td>${a.fz_halteranzahl}</td></tr>`:''}
     ${a.fz_hu_datum?`<tr><td>HU/AU gültig bis:</td><td>${a.fz_hu_datum}</td></tr>`:''}
     ${a.fz_anzahl_schluessel!=null?`<tr><td>Anzahl Schlüssel:</td><td>${a.fz_anzahl_schluessel}</td></tr>`:''}
+    ${reifenListe.length?`<tr><td>Bereifung:</td><td>${reifenListe.join(' · ')}</td></tr>`:''}
     ${ausstListe.length?`<tr><td>Ausstattung:</td><td>${ausstListe.join(' · ')}</td></tr>`:''}
   </table>
 </div>
@@ -1297,16 +1689,21 @@ ${zusListe.length||a.kd_km_faellig||a.kd_datum_faellig||a.kd_alle_durchgefuehrt?
 </div>`:''}
 
 <!-- § 5 Bekannte Mängel -->
-${bekannteMaengel?`
 <div class="sec">
   <div class="sec-title">§ 5 · Bekannte Mängel und Zustand</div>
-  <p style="font-size:9pt;margin-bottom:7pt;">Folgende Mängel sind dem Verkäufer bekannt und werden bei der Kaufpreisfindung berücksichtigt:</p>
+
+  ${a.vk_bekannte_maengel?`
+  <p style="font-size:9pt;margin-bottom:5pt;"><strong>Vom Verkäufer ausdrücklich angegeben (Pflichtangabe):</strong></p>
+  <div style="background:#fffbf0;border:1.5px solid #c8982a;border-radius:4pt;padding:9pt 12pt;font-size:9.5pt;color:#222;line-height:1.55;white-space:pre-wrap;margin-bottom:10pt;">${escapeHtml(a.vk_bekannte_maengel)}</div>`:''}
+
+  ${bekannteMaengel?`
+  <p style="font-size:9pt;margin-bottom:7pt;">Folgende Mängel wurden vom Käufer dokumentiert und werden bei der Kaufpreisfindung berücksichtigt:</p>
   <table class="mn2" style="width:100%;border-collapse:collapse;">
     <thead><tr><th style="width:25%">Baugruppe</th><th>Beschreibung</th><th style="width:100pt;text-align:right;">Kosten (€)</th></tr></thead>
     <tbody>${bekannteMaengel}</tbody>
     ${totalKosten>0?`<tfoot><tr><td colspan="2" style="padding:6pt;font-weight:700;background:#f0f5ff;border-top:1.5px solid #003366;">Gesamt Instandsetzungskosten</td><td style="padding:6pt;font-weight:700;text-align:right;background:#f0f5ff;border-top:1.5px solid #003366;">${formatEuro_plain(totalKosten)}</td></tr></tfoot>`:''}
-  </table>
-</div>`:''}
+  </table>`:''}
+</div>
 
 <!-- § 6 Gewährleistung -->
 <div class="sec">
@@ -1444,6 +1841,21 @@ function formatEuro_plain(n) {
 // ===== HELPERS =====
 function v(id)  { return document.getElementById(id)?.value?.trim()||''; }
 function cb(id) { return document.getElementById(id)?.checked||false; }
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function reifenProfilLabel(a, typ) {
+  // Liefert "VA: 5.5 mm / HA: 5.0 mm" – mit Backward-Compat zu altem Single-Profil-Feld
+  const va = a['reifen_'+typ+'_profil_vorne'];
+  const ha = a['reifen_'+typ+'_profil_hinten'];
+  const old = a['reifen_'+typ+'_profil'];
+  const parts = [];
+  if (va!=null && va!=='') parts.push('VA: '+va+' mm');
+  if (ha!=null && ha!=='') parts.push('HA: '+ha+' mm');
+  if (parts.length) return ' ('+parts.join(' / ')+')';
+  if (old!=null && old!=='') return ' ('+old+' mm Profil)';
+  return '';
+}
 
 function formatDate(iso) {
   return new Date(iso).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -1473,17 +1885,25 @@ function showToast(msg,type='info') {
 
 function resetForm() {
   editingId=null;
+  currentFotos=[];
   document.querySelectorAll('#view-new input, #view-new select, #view-new textarea').forEach(el=>{
-    if (el.type==='checkbox') el.checked=false; else el.value='';
+    if (el.type==='checkbox') el.checked=false;
+    else if (el.type==='file') el.value='';
+    else el.value='';
   });
   document.getElementById('status').value='neu';
   document.getElementById('save-btn').textContent='💾 Ankauf speichern';
   document.getElementById('mn_gesamt_display').textContent='0,00 €';
-  document.getElementById('profil-sommer-wrap').classList.remove('show');
-  document.getElementById('profil-winter-wrap').classList.remove('show');
+  document.getElementById('vk_bekannte_maengel').classList.remove('required-empty');
+  ['sommer','winter','ganzjahres'].forEach(t => {
+    const w = document.getElementById('profil-'+t+'-wrap');
+    if (w) w.classList.remove('show');
+  });
+  renderFotos();
 }
 
 // ===== INIT =====
+renderMaengelRows();
 checkSession();
 </script>
 </body>
