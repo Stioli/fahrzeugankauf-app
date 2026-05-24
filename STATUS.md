@@ -1,7 +1,14 @@
 # Status: fahrzeugankauf-app
 
 **Stand:** 2026-05-24
-**Status:** 🟢 live (v4-Update ausstehend bei Strato)
+**Status:** 🟢 live (v4 deployed via GitHub Pages, Supabase-Migration aktiv)
+
+## Deployment
+- **Live-URLs** (GitHub Pages – auto-deploy bei jedem `git push` auf `main`):
+  - `https://stioli.github.io/fahrzeugankauf-app/` (= `index.html`, identisch mit v3-Datei)
+  - `https://stioli.github.io/fahrzeugankauf-app/inzahlungnahme-app-v3.html` (Direkt-URL)
+- **Strato ist NICHT mehr aktiv** für diese App – GitHub Pages hat das ersetzt seit v3 (Commit `cc23bf4` vom 2026-05-19).
+- **Supabase:** Projekt `mnglpqeqmoxccqnztqez` (eu-central-1), v4-Migration angewendet 2026-05-24.
 
 ## Was zuletzt passiert ist
 - **2026-05-24:** **v4-Update an `inzahlungnahme-app-v3.html`** — Datei behält ihren Namen, ist aber inhaltlich v4. Änderungen:
@@ -16,13 +23,10 @@
 - **2026-05-19:** v3 ([README-v3.md](README-v3.md)) — Stieber-CI, Interne Nr., Spalten-Filter.
 
 ## Nächster Schritt
-1. **Migration in Supabase ausführen:** [`inzahlungnahme-app-v4-migration.sql`](inzahlungnahme-app-v4-migration.sql) im Supabase SQL-Editor laufen lassen (legt Spalten, Storage-Bucket + Policies an).
-2. **Datei nach Strato hochladen:** [`inzahlungnahme-app-v3.html`](inzahlungnahme-app-v3.html) per WebFTP nach `/ankauf/`.
-3. Auf Handy + Tablet testen (Kamera-Aufnahme, Foto-Upload, Speichern, Druck).
+- Auf realem Handy + Tablet testen: Kamera-Aufnahme, Foto-Upload, Speichern, Druck (Zustandsbericht + Kaufvertrag).
 
 ## Offene Fragen / Wartet auf
-- Test auf realem Gerät (Handy + Tablet)
-- Strato-Upload + Migration in Supabase
+- Praxistest durch Mitarbeiter (Handy + Tablet)
 
 ## Wichtige Dateien
 - [inzahlungnahme-app-v3.html](inzahlungnahme-app-v3.html) — Aktuelle App (v4-Inhalt unter v3-Dateinamen)
