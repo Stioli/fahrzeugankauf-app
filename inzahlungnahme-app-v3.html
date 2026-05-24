@@ -557,8 +557,8 @@
                 <span class="reifen-label" onclick="document.getElementById('reifen_sommer').click()">☀️ Sommerreifen</span>
               </div>
               <div class="profil-paar" id="profil-sommer-wrap">
-                <div class="pf-cell"><label for="reifen_sommer_profil_vorne">Profil vorne (mm)</label><input type="number" id="reifen_sommer_profil_vorne" placeholder="6.5" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('sommer')"></div>
-                <div class="pf-cell"><label for="reifen_sommer_profil_hinten">Profil hinten (mm)</label><input type="number" id="reifen_sommer_profil_hinten" placeholder="6.5" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('sommer')"></div>
+                <div class="pf-cell"><label for="reifen_sommer_profil_vorne">Profil vorne (mm)</label><input type="text" id="reifen_sommer_profil_vorne" placeholder="6,5" inputmode="decimal" pattern="[0-9]+([\.,][0-9]+)?" oninput="profilEingegeben('sommer')"></div>
+                <div class="pf-cell"><label for="reifen_sommer_profil_hinten">Profil hinten (mm)</label><input type="text" id="reifen_sommer_profil_hinten" placeholder="6,5" inputmode="decimal" pattern="[0-9]+([\.,][0-9]+)?" oninput="profilEingegeben('sommer')"></div>
               </div>
             </div>
             <div class="reifen-row" id="reifen-winter-row" style="flex-direction:column;align-items:stretch;">
@@ -567,8 +567,8 @@
                 <span class="reifen-label" onclick="document.getElementById('reifen_winter').click()">❄️ Winterreifen</span>
               </div>
               <div class="profil-paar" id="profil-winter-wrap">
-                <div class="pf-cell"><label for="reifen_winter_profil_vorne">Profil vorne (mm)</label><input type="number" id="reifen_winter_profil_vorne" placeholder="5.0" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('winter')"></div>
-                <div class="pf-cell"><label for="reifen_winter_profil_hinten">Profil hinten (mm)</label><input type="number" id="reifen_winter_profil_hinten" placeholder="5.0" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('winter')"></div>
+                <div class="pf-cell"><label for="reifen_winter_profil_vorne">Profil vorne (mm)</label><input type="text" id="reifen_winter_profil_vorne" placeholder="5,0" inputmode="decimal" pattern="[0-9]+([\.,][0-9]+)?" oninput="profilEingegeben('winter')"></div>
+                <div class="pf-cell"><label for="reifen_winter_profil_hinten">Profil hinten (mm)</label><input type="text" id="reifen_winter_profil_hinten" placeholder="5,0" inputmode="decimal" pattern="[0-9]+([\.,][0-9]+)?" oninput="profilEingegeben('winter')"></div>
               </div>
             </div>
             <div class="reifen-row" id="reifen-ganzjahres-row" style="flex-direction:column;align-items:stretch;">
@@ -577,8 +577,8 @@
                 <span class="reifen-label" onclick="document.getElementById('reifen_ganzjahres').click()">🌦️ Ganzjahresreifen</span>
               </div>
               <div class="profil-paar" id="profil-ganzjahres-wrap">
-                <div class="pf-cell"><label for="reifen_ganzjahres_profil_vorne">Profil vorne (mm)</label><input type="number" id="reifen_ganzjahres_profil_vorne" placeholder="5.5" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('ganzjahres')"></div>
-                <div class="pf-cell"><label for="reifen_ganzjahres_profil_hinten">Profil hinten (mm)</label><input type="number" id="reifen_ganzjahres_profil_hinten" placeholder="5.5" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('ganzjahres')"></div>
+                <div class="pf-cell"><label for="reifen_ganzjahres_profil_vorne">Profil vorne (mm)</label><input type="text" id="reifen_ganzjahres_profil_vorne" placeholder="5,5" inputmode="decimal" pattern="[0-9]+([\.,][0-9]+)?" oninput="profilEingegeben('ganzjahres')"></div>
+                <div class="pf-cell"><label for="reifen_ganzjahres_profil_hinten">Profil hinten (mm)</label><input type="text" id="reifen_ganzjahres_profil_hinten" placeholder="5,5" inputmode="decimal" pattern="[0-9]+([\.,][0-9]+)?" oninput="profilEingegeben('ganzjahres')"></div>
               </div>
             </div>
           </div>
@@ -1188,15 +1188,16 @@ async function saveAnkauf() {
     ausstattung_eph_vorne:cb('ausstattung_eph_vorne'), ausstattung_eph_hinten:cb('ausstattung_eph_hinten'),
     ausstattung_kamera_hinten:cb('ausstattung_kamera_hinten'), ausstattung_kamera_360:cb('ausstattung_kamera_360'),
     // Reifen (v4: Profiltiefe vorne/hinten getrennt + Ganzjahresreifen)
+    // parseFloatDE akzeptiert Komma ODER Punkt als Dezimaltrenner
     reifen_sommer:cb('reifen_sommer'),
-    reifen_sommer_profil_vorne :cb('reifen_sommer')?(parseFloat(v('reifen_sommer_profil_vorne'))||null):null,
-    reifen_sommer_profil_hinten:cb('reifen_sommer')?(parseFloat(v('reifen_sommer_profil_hinten'))||null):null,
+    reifen_sommer_profil_vorne :cb('reifen_sommer')?parseFloatDE('reifen_sommer_profil_vorne'):null,
+    reifen_sommer_profil_hinten:cb('reifen_sommer')?parseFloatDE('reifen_sommer_profil_hinten'):null,
     reifen_winter:cb('reifen_winter'),
-    reifen_winter_profil_vorne :cb('reifen_winter')?(parseFloat(v('reifen_winter_profil_vorne'))||null):null,
-    reifen_winter_profil_hinten:cb('reifen_winter')?(parseFloat(v('reifen_winter_profil_hinten'))||null):null,
+    reifen_winter_profil_vorne :cb('reifen_winter')?parseFloatDE('reifen_winter_profil_vorne'):null,
+    reifen_winter_profil_hinten:cb('reifen_winter')?parseFloatDE('reifen_winter_profil_hinten'):null,
     reifen_ganzjahres:cb('reifen_ganzjahres'),
-    reifen_ganzjahres_profil_vorne :cb('reifen_ganzjahres')?(parseFloat(v('reifen_ganzjahres_profil_vorne'))||null):null,
-    reifen_ganzjahres_profil_hinten:cb('reifen_ganzjahres')?(parseFloat(v('reifen_ganzjahres_profil_hinten'))||null):null,
+    reifen_ganzjahres_profil_vorne :cb('reifen_ganzjahres')?parseFloatDE('reifen_ganzjahres_profil_vorne'):null,
+    reifen_ganzjahres_profil_hinten:cb('reifen_ganzjahres')?parseFloatDE('reifen_ganzjahres_profil_hinten'):null,
     // Zusicherungen
     zusicherung_unfallfrei:cb('zusicherung_unfallfrei'), zusicherung_kein_hagel:cb('zusicherung_kein_hagel'),
     zusicherung_kein_nachlack:cb('zusicherung_kein_nachlack'), zusicherung_kein_mietwagen:cb('zusicherung_kein_mietwagen'),
@@ -1850,6 +1851,13 @@ function formatEuro_plain(n) {
 // ===== HELPERS =====
 function v(id)  { return document.getElementById(id)?.value?.trim()||''; }
 function cb(id) { return document.getElementById(id)?.checked||false; }
+// Toleranter Float-Parser: akzeptiert Komma ODER Punkt als Dezimaltrenner (DE/EN)
+function parseFloatDE(id) {
+  const raw = v(id);
+  if (!raw) return null;
+  const n = parseFloat(raw.replace(',', '.'));
+  return isNaN(n) ? null : n;
+}
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
