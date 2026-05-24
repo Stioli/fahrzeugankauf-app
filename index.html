@@ -228,11 +228,13 @@
 
   /* REIFEN-3-GRID */
   .reifen-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
-  .profil-paar { display:none; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; width:100%; }
-  .profil-paar.show { display:grid; }
-  .profil-paar .pf-cell { display:flex; align-items:center; gap:6px; }
+  .profil-paar { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; width:100%; }
+  .profil-paar .pf-cell { display:flex; flex-direction:column; gap:4px; }
   .profil-paar input { width:100%; padding:8px 10px; font-size:14px; text-align:right; border-radius:8px; }
   .profil-paar .pf-cell label { font-size:11px; color:var(--text-muted); white-space:nowrap; }
+  /* Dimmen wenn Reifen-Checkbox NICHT aktiviert ist (visueller Hinweis, aber Eingabe bleibt moeglich) */
+  .reifen-row:not(.aktiv) .profil-paar { opacity:0.55; }
+  .reifen-row.aktiv { border-color:var(--primary); background:rgba(26,109,212,0.04); }
 
   /* RESPONSIVE - TABLET (bis 1024px) */
   @media (max-width:1024px) {
@@ -555,8 +557,8 @@
                 <span class="reifen-label" onclick="document.getElementById('reifen_sommer').click()">☀️ Sommerreifen</span>
               </div>
               <div class="profil-paar" id="profil-sommer-wrap">
-                <div class="pf-cell"><label>Profil vorne (mm)</label><input type="number" id="reifen_sommer_profil_vorne" placeholder="6.5" step="0.5" min="0" max="15"></div>
-                <div class="pf-cell"><label>Profil hinten (mm)</label><input type="number" id="reifen_sommer_profil_hinten" placeholder="6.5" step="0.5" min="0" max="15"></div>
+                <div class="pf-cell"><label for="reifen_sommer_profil_vorne">Profil vorne (mm)</label><input type="number" id="reifen_sommer_profil_vorne" placeholder="6.5" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('sommer')"></div>
+                <div class="pf-cell"><label for="reifen_sommer_profil_hinten">Profil hinten (mm)</label><input type="number" id="reifen_sommer_profil_hinten" placeholder="6.5" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('sommer')"></div>
               </div>
             </div>
             <div class="reifen-row" id="reifen-winter-row" style="flex-direction:column;align-items:stretch;">
@@ -565,8 +567,8 @@
                 <span class="reifen-label" onclick="document.getElementById('reifen_winter').click()">❄️ Winterreifen</span>
               </div>
               <div class="profil-paar" id="profil-winter-wrap">
-                <div class="pf-cell"><label>Profil vorne (mm)</label><input type="number" id="reifen_winter_profil_vorne" placeholder="5.0" step="0.5" min="0" max="15"></div>
-                <div class="pf-cell"><label>Profil hinten (mm)</label><input type="number" id="reifen_winter_profil_hinten" placeholder="5.0" step="0.5" min="0" max="15"></div>
+                <div class="pf-cell"><label for="reifen_winter_profil_vorne">Profil vorne (mm)</label><input type="number" id="reifen_winter_profil_vorne" placeholder="5.0" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('winter')"></div>
+                <div class="pf-cell"><label for="reifen_winter_profil_hinten">Profil hinten (mm)</label><input type="number" id="reifen_winter_profil_hinten" placeholder="5.0" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('winter')"></div>
               </div>
             </div>
             <div class="reifen-row" id="reifen-ganzjahres-row" style="flex-direction:column;align-items:stretch;">
@@ -575,8 +577,8 @@
                 <span class="reifen-label" onclick="document.getElementById('reifen_ganzjahres').click()">🌦️ Ganzjahresreifen</span>
               </div>
               <div class="profil-paar" id="profil-ganzjahres-wrap">
-                <div class="pf-cell"><label>Profil vorne (mm)</label><input type="number" id="reifen_ganzjahres_profil_vorne" placeholder="5.5" step="0.5" min="0" max="15"></div>
-                <div class="pf-cell"><label>Profil hinten (mm)</label><input type="number" id="reifen_ganzjahres_profil_hinten" placeholder="5.5" step="0.5" min="0" max="15"></div>
+                <div class="pf-cell"><label for="reifen_ganzjahres_profil_vorne">Profil vorne (mm)</label><input type="number" id="reifen_ganzjahres_profil_vorne" placeholder="5.5" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('ganzjahres')"></div>
+                <div class="pf-cell"><label for="reifen_ganzjahres_profil_hinten">Profil hinten (mm)</label><input type="number" id="reifen_ganzjahres_profil_hinten" placeholder="5.5" step="0.5" min="0" max="15" inputmode="decimal" oninput="profilEingegeben('ganzjahres')"></div>
               </div>
             </div>
           </div>
@@ -1011,16 +1013,23 @@ function calcSumme() {
 }
 
 // ===== REIFEN PROFILTIEFE (vorne/hinten getrennt, 3 Reifentypen) =====
+// Profil-Felder sind IMMER eingabebereit. Die Checkbox markiert nur den "aktiv"-Zustand
+// (visuelles Highlight); beim Speichern werden Profile mitgenommen, sobald die Checkbox an ist.
 function toggleProfil(typ) {
-  const wrap = document.getElementById('profil-'+typ+'-wrap');
-  const cb   = document.getElementById('reifen_'+typ);
-  if (!wrap || !cb) return;
-  wrap.classList.toggle('show', cb.checked);
+  const row = document.getElementById('reifen-'+typ+'-row');
+  const cb  = document.getElementById('reifen_'+typ);
+  if (!row || !cb) return;
+  row.classList.toggle('aktiv', cb.checked);
+}
+
+// Wenn der Nutzer eine Profiltiefe eintippt, ist der Reifentyp implizit vorhanden
+// -> Checkbox automatisch aktivieren, damit die Werte beim Speichern nicht verloren gehen.
+function profilEingegeben(typ) {
+  const cb = document.getElementById('reifen_'+typ);
+  if (!cb) return;
   if (!cb.checked) {
-    const vEl = document.getElementById('reifen_'+typ+'_profil_vorne');
-    const hEl = document.getElementById('reifen_'+typ+'_profil_hinten');
-    if (vEl) vEl.value = '';
-    if (hEl) hEl.value = '';
+    cb.checked = true;
+    toggleProfil(typ);
   }
 }
 
@@ -1896,8 +1905,8 @@ function resetForm() {
   document.getElementById('mn_gesamt_display').textContent='0,00 €';
   document.getElementById('vk_bekannte_maengel').classList.remove('required-empty');
   ['sommer','winter','ganzjahres'].forEach(t => {
-    const w = document.getElementById('profil-'+t+'-wrap');
-    if (w) w.classList.remove('show');
+    const row = document.getElementById('reifen-'+t+'-row');
+    if (row) row.classList.remove('aktiv');
   });
   renderFotos();
 }
