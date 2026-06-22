@@ -682,6 +682,32 @@
           </div>
         </div>
 
+        <div class="sub-section">
+          <div class="sub-label">🎨 Lackschichtdicken-Messung (µm)</div>
+          <p style="font-size:13px;color:var(--text-light);margin:-2px 0 12px;">
+            Werkslack i.&nbsp;d.&nbsp;R. ca. 80–150&nbsp;µm. Werte über 200&nbsp;µm deuten auf Nachlackierung/Spachtel hin und werden im Prüfbericht hervorgehoben. Felder leer lassen, wenn nicht gemessen.
+          </p>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px 14px;">
+            <div class="form-group"><label>Motorhaube</label><input type="number" id="lack_motorhaube" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Dach</label><input type="number" id="lack_dach" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Heckklappe / Kofferraum</label><input type="number" id="lack_heckklappe" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Kotflügel vorne links</label><input type="number" id="lack_kotfluegel_vl" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Tür vorne links</label><input type="number" id="lack_tuer_vl" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Tür hinten links</label><input type="number" id="lack_tuer_hl" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Seitenwand hinten links</label><input type="number" id="lack_seitenwand_hl" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Schweller links</label><input type="number" id="lack_schweller_l" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Kotflügel vorne rechts</label><input type="number" id="lack_kotfluegel_vr" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Tür vorne rechts</label><input type="number" id="lack_tuer_vr" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Tür hinten rechts</label><input type="number" id="lack_tuer_hr" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Seitenwand hinten rechts</label><input type="number" id="lack_seitenwand_hr" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+            <div class="form-group"><label>Schweller rechts</label><input type="number" id="lack_schweller_r" placeholder="µm" min="0" step="1" inputmode="numeric" oninput="lackCheck(this)"></div>
+          </div>
+          <div class="form-group full-width" style="margin-top:12px;">
+            <label for="lack_bemerkung">Bemerkung zur Lackmessung</label>
+            <textarea id="lack_bemerkung" rows="2" placeholder="z.B. Heckklappe nachlackiert (Steinschlag), sonst durchgängig Werkslack."></textarea>
+          </div>
+        </div>
+
         <div class="sub-section fotos-wrap">
           <div class="sub-label">Fotos vom Fahrzeug</div>
           <p style="font-size:13.5px;color:var(--text-light);margin-bottom:10px;">
@@ -795,6 +821,38 @@ const MN_ROWS = [
   { key:'aufbereitung',label:'Aufbereitung' },
   { key:'garantie',    label:'Garantierückstellung' },
 ];
+
+const LACK_POINTS = [
+  { key:'motorhaube', label:'Motorhaube' },
+  { key:'dach', label:'Dach' },
+  { key:'heckklappe', label:'Heckklappe / Kofferraum' },
+  { key:'kotfluegel_vl', label:'Kotflügel vorne links' },
+  { key:'tuer_vl', label:'Tür vorne links' },
+  { key:'tuer_hl', label:'Tür hinten links' },
+  { key:'seitenwand_hl', label:'Seitenwand hinten links' },
+  { key:'schweller_l', label:'Schweller links' },
+  { key:'kotfluegel_vr', label:'Kotflügel vorne rechts' },
+  { key:'tuer_vr', label:'Tür vorne rechts' },
+  { key:'tuer_hr', label:'Tür hinten rechts' },
+  { key:'seitenwand_hr', label:'Seitenwand hinten rechts' },
+  { key:'schweller_r', label:'Schweller rechts' },
+];
+function lackCheck(el){
+  const val = parseFloat((el.value||'').replace(',','.'));
+  const hi = !isNaN(val) && val>200;
+  el.style.background  = hi ? '#fff3cd' : '';
+  el.style.borderColor = hi ? '#c8982a' : '';
+}
+function collectLackMessung(){
+  const o={};
+  LACK_POINTS.forEach(p=>{
+    const el=document.getElementById('lack_'+p.key);
+    if(!el) return;
+    const val=parseFloat((el.value||'').replace(',','.'));
+    if(!isNaN(val)) o[p.key]=val;
+  });
+  return Object.keys(o).length ? o : null;
+}
 
 // ===== AUTH =====
 async function checkSession() {
@@ -1211,6 +1269,9 @@ async function saveAnkauf() {
       ['mn_'+r.key, v('mn_'+r.key)||null],
       ['mn_'+r.key+'_kosten', parseFloat(document.getElementById('mn_'+r.key+'_kosten')?.value)||null],
     ])),
+    // Lackschichtdicken-Messung
+    lack_messung: collectLackMessung(),
+    lack_bemerkung: v('lack_bemerkung')||null,
     mn_bemerkungen:v('mn_bemerkungen')||null,
     aufwendungen_gesamt:total||null,
     ankaufspreis:parseFloat(v('ankaufspreis'))||null,
@@ -1307,7 +1368,7 @@ function editAnkauf(id) {
     'fz_km_stand','fz_kraftstoff','fz_getriebe','fz_antrieb','fz_leistung_kw','fz_farbe',
     'fz_sitzplaetze','fz_halteranzahl','fz_hu_datum','fz_anzahl_schluessel',
     'kd_km_faellig','kd_datum_faellig',
-    'mn_bemerkungen',
+    'mn_bemerkungen','lack_bemerkung',
     'ankaufspreis','status','bearbeiter_name','notizen'];
   fields.forEach(f => {
     const el = document.getElementById(f);
@@ -1352,6 +1413,14 @@ function editAnkauf(id) {
     if (descEl && a['mn_'+r.key]) descEl.value=a['mn_'+r.key];
     if (kosEl  && a['mn_'+r.key+'_kosten']!=null) kosEl.value=a['mn_'+r.key+'_kosten'];
   });
+
+  // Lackmessung befüllen
+  const _lm = a.lack_messung || {};
+  LACK_POINTS.forEach(p=>{
+    const el=document.getElementById('lack_'+p.key);
+    if(el){ el.value = (_lm[p.key]!=null?_lm[p.key]:''); lackCheck(el); }
+  });
+
   calcSumme();
 
   // Fotos laden
@@ -1412,6 +1481,24 @@ function printZustandsbericht(id) {
       <td style="padding:5pt 6pt;border-bottom:1px solid #eee;font-size:9.5pt;text-align:right;">${kost>0?formatEuro_plain(kost):'–'}</td>
     </tr>`;
   }).join('');
+
+  // Lackschichtdicken-Messung
+  const _lm = a.lack_messung || {};
+  const lackVals = LACK_POINTS.map(p=>[p,_lm[p.key]]).filter(x=>x[1]!=null);
+  const lackRows = lackVals.map(([p,val])=>{
+    const hi = val>200;
+    return `<tr>
+      <td style="padding:4pt 6pt;border-bottom:1px solid #eee;font-size:9.5pt;">${p.label}</td>
+      <td style="padding:4pt 6pt;border-bottom:1px solid #eee;font-size:9.5pt;text-align:right;${hi?'color:#b00020;font-weight:700;':''}">${String(val).replace('.',',')} µm${hi?' ⚠':''}</td>
+    </tr>`;
+  }).join('');
+  const lackHtml = (lackVals.length || a.lack_bemerkung) ? `
+<div class="sec" style="page-break-inside:avoid;">
+  <div class="sec-title">Lackschichtdicken-Messung</div>
+  ${lackVals.length?`<table class="daten"><tbody>${lackRows}</tbody></table>
+  <div style="margin-top:6pt;font-size:8pt;color:#888;">Werkslack üblich ca. 80–150 µm · Werte über 200 µm (⚠) deuten auf Nachlackierung/Spachtel hin.</div>`:''}
+  ${a.lack_bemerkung?`<div style="margin-top:8pt;background:#f5f8fc;border-left:3px solid #003366;padding:7pt 10pt;font-size:9pt;color:#333;line-height:1.5;"><strong>Bemerkung:</strong> ${escapeHtml(a.lack_bemerkung)}</div>`:''}
+</div>` : '';
 
   const html = `<!DOCTYPE html><html lang="de"><head><meta charset="UTF-8">
 <title>Zustandsbericht – ${fzBez}</title>
@@ -1498,6 +1585,8 @@ ${a.vk_bekannte_maengel?`
   </table>
   ${a.mn_bemerkungen?`<div style="margin-top:8pt;background:#f5f8fc;border-left:3px solid #003366;padding:7pt 10pt;font-size:9pt;color:#333;line-height:1.5;"><strong>Bemerkungen:</strong> ${escapeHtml(a.mn_bemerkungen)}</div>`:''}
 </div>
+
+${lackHtml}
 
 ${a.ankaufspreis?`
 <div class="preis-box">
