@@ -462,6 +462,7 @@
               <th class="sortable" onclick="sortBy('interne_nr')"      id="th-interne_nr">Int.-Nr.</th>
               <th class="sortable" onclick="sortBy('erstellt_am')"     id="th-erstellt_am">Datum</th>
               <th class="sortable" onclick="sortBy('status')"          id="th-status">Status</th>
+              <th class="sortable" onclick="sortBy('ankaufspreis')"    id="th-ankaufspreis">Kaufpreis</th>
               <th class="no-filter">Aktion</th>
             </tr>
             <tr class="filter-row">
@@ -479,6 +480,7 @@
                 <option value="abgeschlossen">Abgeschlossen</option>
                 <option value="abgelehnt">Abgelehnt</option>
               </select></th>
+              <th><input type="text" id="f-ankaufspreis"    placeholder="€" oninput="applyFilterSort()"></th>
               <th class="no-filter"></th>
             </tr>
           </thead>
@@ -998,6 +1000,7 @@ function renderTable(data) {
       <td><span class="interne-nr-cell">${a.interne_nr||'–'}</span></td>
       <td>${formatDate(a.erstellt_am)}</td>
       <td><span class="status-badge status-${a.status}">${statusLabel(a.status)}</span></td>
+      <td><strong>${a.ankaufspreis?Math.round(a.ankaufspreis).toLocaleString('de-DE')+' €':'–'}</strong></td>
       <td><button class="btn btn-sm btn-outline" onclick="showDetail('${a.id}')">Bearbeiten</button></td>
     </tr>`).join('');
 }
