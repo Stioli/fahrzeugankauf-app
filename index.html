@@ -131,6 +131,18 @@
   .zus-liste { display:flex; flex-direction:column; gap:8px; }
   .zus-row { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; padding:10px 14px; border-radius:12px; border:1.5px solid var(--border); background:white; }
   .zus-row.required-empty { border-color:#dc3545; background:#fff5f5; }
+  /* Fahrzeugschein einlesen */
+  .fzs-box { border:1.5px dashed var(--primary); background:var(--bg-soft); }
+  .fzs-kopf { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .fzs-titel { font-family:var(--font-heading); font-size:18px; font-weight:700; color:var(--ink); }
+  .fzs-text { font-size:13.5px; color:var(--text-light); margin-top:4px; max-width:560px; }
+  .fzs-knoepfe { display:flex; gap:10px; flex-wrap:wrap; }
+  .fzs-status { margin-top:14px; padding:12px 14px; border-radius:12px; font-size:14px; background:white; border:1px solid var(--border); }
+  .fzs-status.ok { border-color:#e0b100; background:#fffbe6; }
+  .fzs-status.fehler { border-color:var(--error); background:#fff5f5; color:var(--error); }
+  .fzs-status ul { margin:6px 0 10px 18px; }
+  .scan-pruefen { background:#fff3b0 !important; border-color:#e0b100 !important; }
+  @media (max-width:640px) { .fzs-knoepfe, .fzs-knoepfe .btn { width:100%; justify-content:center; } }
   .zus-row .zus-label { font-size:13.5px; font-weight:600; color:var(--ink); }
   .zus-row .zus-opts { display:flex; gap:8px; }
   .zus-opt { display:flex; align-items:center; gap:6px; cursor:pointer; padding:6px 14px; border-radius:10px; border:1.5px solid var(--border); font-size:13.5px; font-weight:500; user-select:none; }
@@ -479,6 +491,23 @@
   <!-- NEUER ANKAUF FORMULAR -->
   <div id="view-new" class="view">
     <div class="form-container">
+
+      <!-- Fahrzeugschein einlesen -->
+      <div class="form-section fzs-box">
+        <div class="fzs-kopf">
+          <div>
+            <div class="fzs-titel">📷 Fahrzeugschein einlesen</div>
+            <div class="fzs-text">Foto oder Scan der Zulassungsbescheinigung Teil I – die Daten werden in die leeren Felder übernommen. Das Bild wird nicht gespeichert.</div>
+          </div>
+          <div class="fzs-knoepfe">
+            <button type="button" class="btn btn-accent" onclick="document.getElementById('fzs_kamera').click()">📷 Foto aufnehmen</button>
+            <button type="button" class="btn btn-outline" onclick="document.getElementById('fzs_datei').click()">📄 Datei wählen</button>
+          </div>
+        </div>
+        <input type="file" id="fzs_kamera" accept="image/*" capture="environment" style="display:none" onchange="fahrzeugscheinLesen(this)">
+        <input type="file" id="fzs_datei" accept="image/*,application/pdf" style="display:none" onchange="fahrzeugscheinLesen(this)">
+        <div id="fzs_status" class="fzs-status" style="display:none"></div>
+      </div>
 
       <!-- 1 · Verkäufer -->
       <div class="form-section">
@@ -1219,6 +1248,11 @@ function openLightbox(url) {
 
 // ===== SPEICHERN =====
 async function saveAnkauf() {
+  if (document.querySelector('#view-new .scan-pruefen')) {
+    showToast('Bitte die gelb markierten Fahrzeugschein-Daten prüfen und „Daten geprüft“ klicken.','error');
+    document.getElementById('fzs_status')?.scrollIntoView({behavior:'smooth', block:'center'});
+    return;
+  }
   const btn = document.getElementById('save-btn');
   btn.disabled=true; btn.textContent='⏳ Speichern…';
 
@@ -2051,6 +2085,140 @@ function statusLabel(s) {
   return {neu:'Neu',bewertet:'Bewertet',vertrag_erstellt:'Vertrag',abgeschlossen:'Abgeschlossen',abgelehnt:'Abgelehnt'}[s]||s;
 }
 
+// ===== FAHRZEUGSCHEIN EINLESEN =====
+// Formularfeld ← Feld aus der Antwort der Edge Function „fahrzeugschein-lesen“
+const FZS_ZUORDNUNG = [
+  ['vk_vorname',       f => f.halter_vorname],
+  ['vk_nachname',      f => f.halter_name],
+  ['vk_strasse',       f => f.halter_strasse],
+  ['vk_plz',           f => f.halter_plz],
+  ['vk_ort',           f => f.halter_ort],
+  ['fz_hersteller',    f => f.marke],
+  ['fz_modell',        f => f.modell],
+  ['fz_kennzeichen',   f => f.kennzeichen ? String(f.kennzeichen).toUpperCase() : null],
+  ['fz_fahrgestellnr', f => f.fin ? String(f.fin).replace(/\s/g,'').toUpperCase() : null],
+  ['fz_erstzulassung', f => /^\d{4}-\d{2}-\d{2}$/.test(f.erstzulassung||'') ? f.erstzulassung : null],
+  ['fz_kraftstoff',    f => f.kraftstoff],
+  ['fz_leistung_kw',   f => f.leistung_kw ? Math.round(Number(f.leistung_kw) * 1.35962) : null], // Feld zeigt PS
+  ['fz_farbe',         f => f.farbe],
+  ['fz_sitzplaetze',   f => f.sitzplaetze ? (Number(f.sitzplaetze) > 9 ? 'mehr als 9' : String(f.sitzplaetze)) : null],
+  ['fz_hu_datum',      f => /^\d{4}-\d{2}$/.test(f.hu_monat||'') ? f.hu_monat : null],
+];
+const FZS_UNSICHER_KEY = { vk_vorname:'halter_vorname', vk_nachname:'halter_name', vk_strasse:'halter_strasse', vk_plz:'halter_plz', vk_ort:'halter_ort',
+  fz_hersteller:'marke', fz_modell:'modell', fz_kennzeichen:'kennzeichen', fz_fahrgestellnr:'fin', fz_erstzulassung:'erstzulassung',
+  fz_kraftstoff:'kraftstoff', fz_leistung_kw:'leistung_kw', fz_farbe:'farbe', fz_sitzplaetze:'sitzplaetze', fz_hu_datum:'hu_monat' };
+
+function fzsLabel(el) {
+  return (el.closest('.form-group')?.querySelector('label')?.textContent || el.id).replace(/\s*\*$/,'').trim();
+}
+
+function fzsEsc(s) { return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function fzsStatus(html, art) {
+  const box = document.getElementById('fzs_status');
+  box.innerHTML = html; box.className = 'fzs-status' + (art ? ' ' + art : ''); box.style.display = '';
+}
+
+// Bild verkleinern (max. 2000 px, JPEG) bzw. PDF unverändert als Base64
+function fzsDateiVorbereiten(file) {
+  return new Promise((resolve, reject) => {
+    if (file.type === 'application/pdf') {
+      if (file.size > 4.5 * 1024 * 1024) return reject(new Error('PDF ist zu groß (max. 4,5 MB).'));
+      const r = new FileReader();
+      r.onload = () => resolve({ daten: String(r.result).split(',')[1], typ: 'application/pdf' });
+      r.onerror = () => reject(new Error('Datei konnte nicht gelesen werden.'));
+      return r.readAsDataURL(file);
+    }
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const max = 2000, f = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      URL.revokeObjectURL(url);
+      resolve({ daten: c.toDataURL('image/jpeg', 0.88).split(',')[1], typ: 'image/jpeg' });
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Bildformat wird nicht unterstützt – bitte als JPG oder PNG versuchen.')); };
+    img.src = url;
+  });
+}
+
+async function fahrzeugscheinLesen(input) {
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file) return;
+  fzsStatus('⏳ Fahrzeugschein wird gelesen … (ca. 5–15 Sekunden)');
+  try {
+    const vorb = await fzsDateiVorbereiten(file);
+    const { data, error } = await db.functions.invoke('fahrzeugschein-lesen', { body: vorb });
+    if (error) throw new Error(error.message || 'Aufruf fehlgeschlagen');
+    if (!data?.ok) throw new Error(data?.error || 'Keine Daten erkannt');
+    fzsUebernehmen(data.felder || {});
+  } catch (e) {
+    fzsStatus('⚠️ Einlesen fehlgeschlagen: ' + fzsEsc(e.message || e) + '<br>Bitte noch einmal mit einem scharfen, gerade aufgenommenen Foto versuchen oder die Daten von Hand eintragen.', 'fehler');
+  }
+}
+
+function fzsUebernehmen(f) {
+  if (f.ist_fahrzeugschein === false) {
+    fzsStatus('⚠️ Auf dem Bild wurde kein Fahrzeugschein erkannt. Bitte die Vorderseite der Zulassungsbescheinigung Teil I fotografieren.', 'fehler');
+    return;
+  }
+  const unsicher = new Set(Array.isArray(f.unsicher) ? f.unsicher : []);
+  const uebernommen = [], abweichend = [];
+  FZS_ZUORDNUNG.forEach(([id, holen]) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    let wert = holen(f);
+    if (wert === null || wert === undefined || String(wert).trim() === '') return;
+    wert = String(wert).trim();
+    const alt = String(el.value || '').trim();
+    if (alt) {
+      if (alt.toUpperCase() !== wert.toUpperCase()) abweichend.push({ label: fzsLabel(el), alt, wert });
+      return;
+    }
+    el.value = wert;
+    if (el.tagName === 'SELECT' && el.value !== wert) { el.value = ''; return; } // Wert nicht in der Auswahl
+    el.classList.add('scan-pruefen');
+    const weg = () => el.classList.remove('scan-pruefen');
+    el.addEventListener('input', weg, { once: true });
+    el.addEventListener('change', weg, { once: true });
+    const anzeige = el.tagName === 'SELECT' ? el.options[el.selectedIndex].text
+      : el.type === 'date' ? wert.split('-').reverse().join('.')
+      : el.type === 'month' ? wert.split('-').reverse().join('/') : wert;
+    uebernommen.push({ label: fzsLabel(el), wert: anzeige, unsicher: unsicher.has(FZS_UNSICHER_KEY[id]) });
+  });
+
+  if (!uebernommen.length && !abweichend.length) {
+    fzsStatus('ℹ️ Es konnten keine Felder gelesen werden. Bitte ein schärferes Foto versuchen.', 'fehler');
+    return;
+  }
+  let html = '';
+  if (uebernommen.length) {
+    html += `<strong>${uebernommen.length} Felder übernommen</strong> (gelb markiert) – bitte mit dem Fahrzeugschein vergleichen:<ul>` +
+      uebernommen.map(u => `<li>${fzsEsc(u.label)}: <strong>${fzsEsc(u.wert)}</strong>${u.unsicher ? ' <span style="color:var(--error)">(schwer lesbar – genau prüfen)</span>' : ''}</li>`).join('') + '</ul>';
+  }
+  if (abweichend.length) {
+    html += `<strong>Nicht überschrieben</strong> (Feld war schon ausgefüllt, Fahrzeugschein sagt etwas anderes):<ul>` +
+      abweichend.map(a => `<li>${fzsEsc(a.label)}: Formular „${fzsEsc(a.alt)}“ · Fahrzeugschein „${fzsEsc(a.wert)}“</li>`).join('') + '</ul>';
+  }
+  html += 'Leistung wurde von kW in PS umgerechnet. KM-Stand, Getriebe, Vorbesitzer und Schlüssel stehen nicht im Fahrzeugschein.';
+  if (uebernommen.length) html += '<div style="margin-top:10px"><button type="button" class="btn btn-success btn-sm" onclick="fzsGeprueft()">✓ Daten geprüft</button></div>';
+  fzsStatus(html, 'ok');
+}
+
+function fzsGeprueft() {
+  document.querySelectorAll('#view-new .scan-pruefen').forEach(el => el.classList.remove('scan-pruefen'));
+  fzsStatus('✓ Übernommene Fahrzeugschein-Daten wurden geprüft.', '');
+}
+
+function fzsZuruecksetzen() {
+  document.querySelectorAll('#view-new .scan-pruefen').forEach(el => el.classList.remove('scan-pruefen'));
+  const box = document.getElementById('fzs_status');
+  if (box) { box.style.display = 'none'; box.innerHTML = ''; }
+}
+
 function showToast(msg,type='info') {
   const t=document.getElementById('toast');
   t.textContent=msg; t.className=`toast ${type} show`;
@@ -2065,6 +2233,7 @@ function resetForm() {
     else if (el.type==='file') el.value='';
     else el.value='';
   });
+  fzsZuruecksetzen();
   // Hervorhebungen der Lackmessung zurücksetzen
   document.querySelectorAll('#view-new input[id^="lack_"]').forEach(el=>{ el.style.background=''; el.style.borderColor=''; });
   // Bearbeiter wieder mit angemeldetem Nutzer vorbelegen
