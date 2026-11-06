@@ -443,26 +443,22 @@
         <table id="ankauf-table" style="display:none;">
           <thead>
             <tr>
-              <th class="sortable" onclick="sortBy('interne_nr')"      id="th-interne_nr">Interne Nr.</th>
-              <th class="sortable" onclick="sortBy('erstellt_am')"     id="th-erstellt_am">Datum</th>
+              <th class="sortable" onclick="sortBy('vk_nachname')"     id="th-vk_nachname">Kunde</th>
               <th class="sortable" onclick="sortBy('fz_hersteller')"   id="th-fz_hersteller">Fahrzeug</th>
-              <th class="sortable" onclick="sortBy('fz_fahrgestellnr')" id="th-fz_fahrgestellnr">Fgst.-Nr.</th>
               <th class="sortable" onclick="sortBy('fz_kennzeichen')"  id="th-fz_kennzeichen">Kennzeichen</th>
-              <th class="sortable" onclick="sortBy('vk_nachname')"     id="th-vk_nachname">Verkäufer</th>
-              <th class="sortable" onclick="sortBy('fz_km_stand')"     id="th-fz_km_stand">KM-Stand</th>
-              <th class="sortable" onclick="sortBy('ankaufspreis')"    id="th-ankaufspreis">Ankaufspreis</th>
+              <th class="sortable" onclick="sortBy('fz_fahrgestellnr')" id="th-fz_fahrgestellnr">Fgst.-Nr.</th>
+              <th class="sortable" onclick="sortBy('interne_nr')"      id="th-interne_nr">Int.-Nr.</th>
+              <th class="sortable" onclick="sortBy('erstellt_am')"     id="th-erstellt_am">Datum</th>
               <th class="sortable" onclick="sortBy('status')"          id="th-status">Status</th>
               <th class="no-filter">Aktion</th>
             </tr>
             <tr class="filter-row">
+              <th><input type="text" id="f-vk_nachname"     placeholder="Name" oninput="applyFilterSort()"></th>
+              <th><input type="text" id="f-fz_hersteller"   placeholder="Marke/Modell" oninput="applyFilterSort()"></th>
+              <th><input type="text" id="f-fz_kennzeichen"  placeholder="Kennz." oninput="applyFilterSort()"></th>
+              <th><input type="text" id="f-fz_fahrgestellnr" placeholder="FIN" oninput="applyFilterSort()"></th>
               <th><input type="text" id="f-interne_nr"      placeholder="filtern…" oninput="applyFilterSort()"></th>
               <th><input type="text" id="f-erstellt_am"     placeholder="z.B. 17.05" oninput="applyFilterSort()"></th>
-              <th><input type="text" id="f-fz_hersteller"   placeholder="Marke/Modell" oninput="applyFilterSort()"></th>
-              <th><input type="text" id="f-fz_fahrgestellnr" placeholder="FIN" oninput="applyFilterSort()"></th>
-              <th><input type="text" id="f-fz_kennzeichen"  placeholder="Kennz." oninput="applyFilterSort()"></th>
-              <th><input type="text" id="f-vk_nachname"     placeholder="Name" oninput="applyFilterSort()"></th>
-              <th><input type="text" id="f-fz_km_stand"     placeholder="km" oninput="applyFilterSort()"></th>
-              <th><input type="text" id="f-ankaufspreis"    placeholder="€" oninput="applyFilterSort()"></th>
               <th><select id="f-status" onchange="applyFilterSort()">
                 <option value="">Alle</option>
                 <option value="neu">Neu</option>
@@ -928,7 +924,12 @@ function switchTab(tab) {
   event.target.classList.add('active');
   document.getElementById('view-' + tab).classList.add('active');
   if (tab === 'overview') loadAnkauefe();
-  if (tab === 'new' && !editingId) resetForm();
+  // Klick auf „+ Neuer Ankauf“ heißt immer: neuer, leerer Vorgang.
+  // (Bearbeiten öffnet das Formular über switchTabDirect, nicht hier.)
+  // Früher blieb nach abgebrochenem Bearbeiten editingId gesetzt → altes Formular sichtbar,
+  // und Speichern hätte den alten Vorgang überschrieben.
+  if (tab === 'new') resetForm();
+  if (tab === 'overview' && editingId) resetForm();
 }
 
 function switchTabDirect(tab) {
@@ -961,16 +962,14 @@ function renderTable(data) {
   document.getElementById('table-empty').style.display  = 'none';
   document.getElementById('table-body').innerHTML = data.map(a => `
     <tr>
+      <td>${(a.vk_vorname||'')} ${(a.vk_nachname||'')}</td>
+      <td><strong>${a.fz_hersteller||''} ${a.fz_modell||''}${a.fz_typ?' '+a.fz_typ:''}</strong></td>
+      <td>${a.fz_kennzeichen||'–'}</td>
+      <td><span class="fgst-cell">${a.fz_fahrgestellnr||'–'}</span></td>
       <td><span class="interne-nr-cell">${a.interne_nr||'–'}</span></td>
       <td>${formatDate(a.erstellt_am)}</td>
-      <td><strong>${a.fz_hersteller||''} ${a.fz_modell||''}${a.fz_typ?' '+a.fz_typ:''}</strong></td>
-      <td><span class="fgst-cell">${a.fz_fahrgestellnr||'–'}</span></td>
-      <td>${a.fz_kennzeichen||'–'}</td>
-      <td>${(a.vk_vorname||'')} ${(a.vk_nachname||'')}</td>
-      <td>${a.fz_km_stand?a.fz_km_stand.toLocaleString('de-DE')+' km':'–'}</td>
-      <td><strong>${a.ankaufspreis?formatEuro(a.ankaufspreis):'–'}</strong></td>
       <td><span class="status-badge status-${a.status}">${statusLabel(a.status)}</span></td>
-      <td><button class="btn btn-sm btn-outline" onclick="showDetail('${a.id}')">Details</button></td>
+      <td><button class="btn btn-sm btn-outline" onclick="showDetail('${a.id}')">Bearbeiten</button></td>
     </tr>`).join('');
 }
 
@@ -2066,6 +2065,10 @@ function resetForm() {
     else if (el.type==='file') el.value='';
     else el.value='';
   });
+  // Hervorhebungen der Lackmessung zurücksetzen
+  document.querySelectorAll('#view-new input[id^="lack_"]').forEach(el=>{ el.style.background=''; el.style.borderColor=''; });
+  // Bearbeiter wieder mit angemeldetem Nutzer vorbelegen
+  if (currentUserEmail) document.getElementById('bearbeiter_name').value = currentUserEmail.split('@')[0];
   document.getElementById('status').value='neu';
   document.getElementById('save-btn').textContent='💾 Ankauf speichern';
   document.getElementById('mn_gesamt_display').textContent='0,00 €';
